@@ -9,7 +9,6 @@ import Icon from '../components/Icon';
 import LocalityRow from '../components/LocalityRow';
 import MapPreview from '../components/MapPreview';
 import SearchBar from '../components/SearchBar';
-import TopBar from '../components/TopBar';
 import { recentStore } from '../lib/storage';
 
 type LocateState = { status: 'idle' } | { status: 'locating' } | { status: 'error'; message: string };
@@ -100,10 +99,19 @@ export default function Home() {
 
   return (
     <>
-      <TopBar />
+      {/* Brand + heading share one card so the name and the pitch read as a single unit,
+          not a nav bar sitting on top of a separate section. */}
+      <div className="animate-fade-up flex flex-col gap-3 rounded-b-2xl bg-surface-container-lowest px-margin-mobile pb-lg pt-3 shadow-soft">
+        <div className="flex items-center gap-2">
+          <button
+            aria-label="Menu"
+            className="-ml-2 rounded-full p-2 text-primary transition-colors hover:bg-surface-container-highest active:scale-95"
+          >
+            <Icon name="menu" />
+          </button>
+          <h1 className="text-headline-md font-headline-md font-bold text-primary">CityService</h1>
+        </div>
 
-      {/* Intro + search — one calm block, not a competing colour band */}
-      <section className="animate-fade-up flex flex-col gap-3 px-margin-mobile pb-lg pt-md">
         <div>
           <p className="flex items-center gap-1.5 text-label-bold text-primary">
             <Icon name="explore" size={14} />
@@ -138,7 +146,7 @@ export default function Home() {
             {locate.message}
           </p>
         )}
-      </section>
+      </div>
 
       <div className="animate-fade-up flex flex-col gap-lg px-margin-mobile pb-lg pt-lg">
         {searching ? (
