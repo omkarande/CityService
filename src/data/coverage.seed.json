@@ -1,0 +1,496 @@
+{
+  "_warning": "Most records below are ILLUSTRATIVE PLACEHOLDER DATA — invented to exercise the resolution ladder and the confidence UI, source 'seed-placeholder', capped below the 'verified' tier. The exception is the pimpri-chinchwad block at the top of the array (see _verifiedNote): those 8 records are real, checked live on 2026-08-14. See ARCHITECTURE.md §3.",
+  "_verifiedNote": "The pimpri-chinchwad records were verified via a live claude-in-chrome browser session: a real location was set on each platform's own website (swiggy.com, zeptonow.com, blinkit.com, zomato.com, amazon.in, flipkart.com, bigbasket.com) and the real rendered result was read back — not a headless fetch, not guessed. Each is a single check, not a crowd report, so evidence is {positive:1, negative:0} and source is 'probe' (see confidence.ts SOURCE_WEIGHT). Ravet (pune-ravet) is pending — the user is checking it manually.",
+  "records": [
+  {
+    "platformId": "swiggy",
+    "areaId": "pimpri-chinchwad",
+    "status": "available",
+    "source": "probe",
+    "lastVerifiedAt": "2026-08-14T00:00:00Z",
+    "evidence": { "positive": 1, "negative": 0 },
+    "details": {
+      "etaMinutes": [20, 45],
+      "coverageStrength": "wide",
+      "note": "Verified live on swiggy.com for Chinchwad, Pimpri-Chinchwad — real restaurants listed (Pizza Hut 20-25 min, Barbeque Nation 35-45 min)."
+    }
+  },
+  {
+    "platformId": "instamart",
+    "areaId": "pimpri-chinchwad",
+    "status": "available",
+    "source": "probe",
+    "lastVerifiedAt": "2026-08-14T00:00:00Z",
+    "evidence": { "positive": 1, "negative": 0 },
+    "details": {
+      "etaMinutes": [6, 6],
+      "coverageStrength": "wide",
+      "note": "Verified live on swiggy.com/instamart — storefront active, \"6 Mins Delivery\" shown for Chinchwad, Pimpri-Chinchwad."
+    }
+  },
+  {
+    "platformId": "zepto",
+    "areaId": "pimpri-chinchwad",
+    "status": "available",
+    "source": "probe",
+    "lastVerifiedAt": "2026-08-14T00:00:00Z",
+    "evidence": { "positive": 1, "negative": 0 },
+    "details": {
+      "etaMinutes": [8, 8],
+      "coverageStrength": "wide",
+      "note": "Verified live on zeptonow.com — \"Delivery in 8 Mins\", nearest dark store MIDC / Old Mumbai-Pune Highway."
+    }
+  },
+  {
+    "platformId": "blinkit",
+    "areaId": "pimpri-chinchwad",
+    "status": "available",
+    "source": "probe",
+    "lastVerifiedAt": "2026-08-14T00:00:00Z",
+    "evidence": { "positive": 1, "negative": 0 },
+    "details": {
+      "etaMinutes": [11, 11],
+      "coverageStrength": "wide",
+      "note": "Verified live on blinkit.com — \"Delivery in 11 minutes\" for Chinchwad, Pimpri-Chinchwad."
+    }
+  },
+  {
+    "platformId": "zomato",
+    "areaId": "pimpri-chinchwad",
+    "status": "available",
+    "source": "probe",
+    "lastVerifiedAt": "2026-08-14T00:00:00Z",
+    "evidence": { "positive": 1, "negative": 0 },
+    "details": {
+      "etaMinutes": [15, 18],
+      "coverageStrength": "wide",
+      "note": "Verified live on zomato.com/pune/delivery-in-chinchwad — real restaurants listed (McDonald's 18 min, KFC 15 min)."
+    }
+  },
+  {
+    "platformId": "amazon",
+    "areaId": "pimpri-chinchwad",
+    "status": "available",
+    "source": "probe",
+    "lastVerifiedAt": "2026-08-14T00:00:00Z",
+    "evidence": { "positive": 1, "negative": 0 },
+    "details": {
+      "coverageStrength": "wide",
+      "note": "Verified live on amazon.in for pincode 411018 — accepted as a deliverable pincode; search results showed \"fast delivery\" items."
+    }
+  },
+  {
+    "platformId": "flipkart",
+    "areaId": "pimpri-chinchwad",
+    "status": "available",
+    "source": "probe",
+    "lastVerifiedAt": "2026-08-14T00:00:00Z",
+    "evidence": { "positive": 1, "negative": 0 },
+    "details": {
+      "coverageStrength": "wide",
+      "note": "Verified live on flipkart.com — delivery address confirmed to H Block, MIDC, Pimpri Colony, Pimpri-Chinchwad, 411018. Flipkart Minutes (13-min quick commerce, a separate service not yet tracked here) was also live at this address."
+    }
+  },
+  {
+    "platformId": "bigbasket",
+    "areaId": "pimpri-chinchwad",
+    "status": "available",
+    "source": "probe",
+    "lastVerifiedAt": "2026-08-14T00:00:00Z",
+    "evidence": { "positive": 1, "negative": 0 },
+    "details": {
+      "etaMinutes": [11, 11],
+      "coverageStrength": "wide",
+      "note": "Verified live on bigbasket.com — \"Delivery in 11 mins\" to 411019, Pimpri-Chinchwad."
+    }
+  },
+
+  {
+    "platformId": "uber",
+    "areaId": "pune-chikhali-shinde-vasti",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-08-05T00:00:00Z",
+    "evidence": { "positive": 8, "negative": 1 },
+    "details": {
+      "etaMinutes": [4, 9],
+      "coverageStrength": "partial",
+      "note": "Autos are easier to get here than cabs."
+    }
+  },
+  {
+    "platformId": "rapido",
+    "areaId": "pune-chikhali-shinde-vasti",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-08-01T00:00:00Z",
+    "evidence": { "positive": 11, "negative": 0 },
+    "details": { "etaMinutes": [3, 6], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "zepto",
+    "areaId": "pune-chikhali-shinde-vasti",
+    "status": "unavailable",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-28T00:00:00Z",
+    "evidence": { "positive": 9, "negative": 1 },
+    "details": { "note": "Nearest dark store is in Chikhali; this address falls outside its radius." }
+  },
+  {
+    "platformId": "swiggy",
+    "areaId": "pune-chikhali-shinde-vasti",
+    "status": "partial",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-05-10T00:00:00Z",
+    "evidence": { "positive": 4, "negative": 3 },
+    "details": {
+      "etaMinutes": [45, 70],
+      "coverageStrength": "edge",
+      "note": "Few restaurants serve this pin; many show 'too far to deliver'."
+    }
+  },
+
+  {
+    "platformId": "zomato",
+    "areaId": "pune-chikhali",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-15T00:00:00Z",
+    "evidence": { "positive": 12, "negative": 1 },
+    "details": { "etaMinutes": [35, 55], "coverageStrength": "partial" }
+  },
+  {
+    "platformId": "blinkit",
+    "areaId": "pune-chikhali",
+    "status": "unavailable",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-06-20T00:00:00Z",
+    "evidence": { "positive": 7, "negative": 2 }
+  },
+  {
+    "platformId": "amazon",
+    "areaId": "pune-chikhali",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-06-01T00:00:00Z",
+    "evidence": { "positive": 15, "negative": 0 },
+    "details": { "coverageStrength": "wide", "note": "Standard delivery only — no same-day." }
+  },
+  {
+    "platformId": "flipkart",
+    "areaId": "pune-chikhali",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-05-25T00:00:00Z",
+    "evidence": { "positive": 9, "negative": 1 },
+    "details": { "coverageStrength": "wide" }
+  },
+
+  {
+    "platformId": "zepto",
+    "areaId": "pune-baner",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-08-08T00:00:00Z",
+    "evidence": { "positive": 22, "negative": 0 },
+    "details": { "etaMinutes": [8, 14], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "blinkit",
+    "areaId": "pune-baner",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-08-06T00:00:00Z",
+    "evidence": { "positive": 19, "negative": 1 },
+    "details": { "etaMinutes": [9, 16], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "swiggy",
+    "areaId": "pune-baner",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-08-09T00:00:00Z",
+    "evidence": { "positive": 30, "negative": 0 },
+    "details": { "etaMinutes": [22, 35], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "uber",
+    "areaId": "pune-baner",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-08-10T00:00:00Z",
+    "evidence": { "positive": 28, "negative": 1 },
+    "details": { "etaMinutes": [2, 5], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "urban-company",
+    "areaId": "pune-baner",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-25T00:00:00Z",
+    "evidence": { "positive": 13, "negative": 0 },
+    "details": { "coverageStrength": "wide" }
+  },
+
+  {
+    "platformId": "zepto",
+    "areaId": "pune-hinjewadi",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-08-07T00:00:00Z",
+    "evidence": { "positive": 20, "negative": 0 },
+    "details": { "etaMinutes": [8, 15], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "uber",
+    "areaId": "pune-hinjewadi",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-08-09T00:00:00Z",
+    "evidence": { "positive": 26, "negative": 1 },
+    "details": { "etaMinutes": [3, 8], "coverageStrength": "wide" }
+  },
+
+  {
+    "platformId": "zepto",
+    "areaId": "pune-wagholi",
+    "status": "partial",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-19T00:00:00Z",
+    "evidence": { "positive": 5, "negative": 4 },
+    "details": {
+      "coverageStrength": "edge",
+      "note": "Some societies only — check your exact pin before ordering."
+    }
+  },
+  {
+    "platformId": "swiggy",
+    "areaId": "pune-wagholi",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-22T00:00:00Z",
+    "evidence": { "positive": 14, "negative": 2 },
+    "details": { "etaMinutes": [30, 50], "coverageStrength": "partial" }
+  },
+  {
+    "platformId": "uber",
+    "areaId": "pune-wagholi",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-08-02T00:00:00Z",
+    "evidence": { "positive": 12, "negative": 1 },
+    "details": { "etaMinutes": [6, 14], "coverageStrength": "partial" }
+  },
+
+  {
+    "platformId": "zepto",
+    "areaId": "pune-moshi",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-30T00:00:00Z",
+    "evidence": { "positive": 8, "negative": 2 },
+    "details": { "etaMinutes": [12, 20], "coverageStrength": "partial" }
+  },
+  {
+    "platformId": "swiggy",
+    "areaId": "pune-moshi",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-26T00:00:00Z",
+    "evidence": { "positive": 11, "negative": 1 },
+    "details": { "etaMinutes": [28, 45], "coverageStrength": "partial" }
+  },
+
+  {
+    "platformId": "zepto",
+    "areaId": "pune-talegaon-dabhade",
+    "status": "unavailable",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-06-05T00:00:00Z",
+    "evidence": { "positive": 12, "negative": 1 }
+  },
+  {
+    "platformId": "blinkit",
+    "areaId": "pune-talegaon-dabhade",
+    "status": "unavailable",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-06-05T00:00:00Z",
+    "evidence": { "positive": 10, "negative": 1 }
+  },
+  {
+    "platformId": "instamart",
+    "areaId": "pune-talegaon-dabhade",
+    "status": "unavailable",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-06-08T00:00:00Z",
+    "evidence": { "positive": 9, "negative": 0 }
+  },
+  {
+    "platformId": "uber",
+    "areaId": "pune-talegaon-dabhade",
+    "status": "partial",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-12T00:00:00Z",
+    "evidence": { "positive": 6, "negative": 5 },
+    "details": {
+      "etaMinutes": [12, 30],
+      "coverageStrength": "edge",
+      "note": "Long waits and frequent driver cancellations."
+    }
+  },
+  {
+    "platformId": "rapido",
+    "areaId": "pune-talegaon-dabhade",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-14T00:00:00Z",
+    "evidence": { "positive": 10, "negative": 2 },
+    "details": { "etaMinutes": [5, 12], "coverageStrength": "partial" }
+  },
+  {
+    "platformId": "amazon",
+    "areaId": "pune-talegaon-dabhade",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-05-30T00:00:00Z",
+    "evidence": { "positive": 17, "negative": 0 },
+    "details": { "coverageStrength": "wide" }
+  },
+
+  {
+    "platformId": "uber",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-01T00:00:00Z",
+    "evidence": { "positive": 25, "negative": 1 },
+    "details": { "etaMinutes": [3, 8], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "ola",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-06-10T00:00:00Z",
+    "evidence": { "positive": 20, "negative": 3 },
+    "details": { "etaMinutes": [5, 12], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "rapido",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-10T00:00:00Z",
+    "evidence": { "positive": 19, "negative": 2 },
+    "details": { "etaMinutes": [4, 10], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "swiggy",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-05T00:00:00Z",
+    "evidence": { "positive": 22, "negative": 1 },
+    "details": { "etaMinutes": [25, 40], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "zomato",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-07-08T00:00:00Z",
+    "evidence": { "positive": 21, "negative": 1 },
+    "details": { "etaMinutes": [25, 40], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "zepto",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-06-22T00:00:00Z",
+    "evidence": { "positive": 17, "negative": 3 },
+    "details": { "etaMinutes": [10, 18], "coverageStrength": "partial" }
+  },
+  {
+    "platformId": "blinkit",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-06-25T00:00:00Z",
+    "evidence": { "positive": 15, "negative": 2 },
+    "details": { "etaMinutes": [10, 20], "coverageStrength": "partial" }
+  },
+  {
+    "platformId": "instamart",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-06-18T00:00:00Z",
+    "evidence": { "positive": 18, "negative": 2 },
+    "details": { "etaMinutes": [12, 25], "coverageStrength": "partial" }
+  },
+  {
+    "platformId": "bigbasket",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-05-05T00:00:00Z",
+    "evidence": { "positive": 14, "negative": 1 },
+    "details": { "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "amazon",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-05-15T00:00:00Z",
+    "evidence": { "positive": 24, "negative": 0 },
+    "details": { "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "flipkart",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-05-18T00:00:00Z",
+    "evidence": { "positive": 20, "negative": 1 },
+    "details": { "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "porter",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-06-30T00:00:00Z",
+    "evidence": { "positive": 16, "negative": 1 },
+    "details": { "etaMinutes": [20, 40], "coverageStrength": "wide" }
+  },
+  {
+    "platformId": "dunzo",
+    "areaId": "pune",
+    "status": "unavailable",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-03-15T00:00:00Z",
+    "evidence": { "positive": 8, "negative": 4 },
+    "details": { "note": "Reported as wound down in most cities." }
+  },
+  {
+    "platformId": "urban-company",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-05-20T00:00:00Z",
+    "evidence": { "positive": 11, "negative": 2 },
+    "details": { "coverageStrength": "partial" }
+  },
+  {
+    "platformId": "pharmeasy",
+    "areaId": "pune",
+    "status": "available",
+    "source": "seed-placeholder",
+    "lastVerifiedAt": "2026-04-12T00:00:00Z",
+    "evidence": { "positive": 9, "negative": 2 },
+    "details": { "coverageStrength": "partial" }
+  }
+  ]
+}

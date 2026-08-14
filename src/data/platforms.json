@@ -1,0 +1,135 @@
+[
+  {
+    "id": "uber",
+    "name": "Uber",
+    "categoryId": "ride-hailing",
+    "brandColor": "#000000",
+    "logoUrl": "/logos/uber.png",
+    "initials": "Ub",
+    "website": "https://www.uber.com/in/en/"
+  },
+  {
+    "id": "ola",
+    "name": "Ola",
+    "categoryId": "ride-hailing",
+    "brandColor": "#1d1d1d",
+    "logoUrl": "/logos/ola.png",
+    "initials": "Ol",
+    "website": "https://www.olacabs.com/"
+  },
+  {
+    "id": "rapido",
+    "name": "Rapido",
+    "categoryId": "bike-taxi",
+    "brandColor": "#f5c518",
+    "logoUrl": "/logos/rapido.png",
+    "initials": "Rp",
+    "website": "https://rapido.bike/"
+  },
+  {
+    "id": "swiggy",
+    "name": "Swiggy",
+    "categoryId": "food-delivery",
+    "brandColor": "#fc8019",
+    "logoUrl": "/logos/swiggy.png",
+    "initials": "Sw",
+    "website": "https://www.swiggy.com/"
+  },
+  {
+    "id": "zomato",
+    "name": "Zomato",
+    "categoryId": "food-delivery",
+    "brandColor": "#e23744",
+    "logoUrl": "/logos/zomato.png",
+    "initials": "Zo",
+    "website": "https://www.zomato.com/"
+  },
+  {
+    "id": "zepto",
+    "name": "Zepto",
+    "categoryId": "quick-commerce",
+    "brandColor": "#4f1eff",
+    "logoUrl": "/logos/zepto.png",
+    "initials": "Ze",
+    "website": "https://www.zeptonow.com/"
+  },
+  {
+    "id": "blinkit",
+    "name": "Blinkit",
+    "categoryId": "quick-commerce",
+    "brandColor": "#f8cb46",
+    "logoUrl": "/logos/blinkit.png",
+    "initials": "Bl",
+    "website": "https://blinkit.com/"
+  },
+  {
+    "id": "instamart",
+    "name": "Swiggy Instamart",
+    "categoryId": "quick-commerce",
+    "brandColor": "#f05a28",
+    "logoUrl": "/logos/instamart.png",
+    "initials": "In",
+    "website": "https://www.swiggy.com/instamart"
+  },
+  {
+    "id": "bigbasket",
+    "name": "BigBasket",
+    "categoryId": "grocery",
+    "brandColor": "#84c225",
+    "initials": "BB",
+    "website": "https://www.bigbasket.com/"
+  },
+  {
+    "id": "amazon",
+    "name": "Amazon",
+    "categoryId": "ecommerce",
+    "brandColor": "#ff9900",
+    "logoUrl": "/logos/amazon.png",
+    "initials": "Am",
+    "website": "https://www.amazon.in/"
+  },
+  {
+    "id": "flipkart",
+    "name": "Flipkart",
+    "categoryId": "ecommerce",
+    "brandColor": "#2874f0",
+    "logoUrl": "/logos/flipkart.png",
+    "initials": "Fk",
+    "website": "https://www.flipkart.com/"
+  },
+  {
+    "id": "porter",
+    "name": "Porter",
+    "categoryId": "courier",
+    "brandColor": "#1a4ae0",
+    "logoUrl": "/logos/porter.png",
+    "initials": "Po",
+    "website": "https://porter.in/"
+  },
+  {
+    "id": "dunzo",
+    "name": "Dunzo",
+    "categoryId": "courier",
+    "brandColor": "#00d290",
+    "initials": "Du",
+    "website": "https://www.dunzo.com/"
+  },
+  {
+    "id": "urban-company",
+    "name": "Urban Company",
+    "categoryId": "home-services",
+    "brandColor": "#3d2fb8",
+    "logoUrl": "/logos/urban-company.jpg",
+    "initials": "UC",
+    "website": "https://www.urbancompany.com/"
+  },
+  {
+    "id": "pharmeasy",
+    "name": "PharmEasy",
+    "categoryId": "pharmacy",
+    "brandColor": "#10847e",
+    "logoUrl": "/logos/pharmeasy.jpg",
+    "initials": "Ph",
+    "website": "https://pharmeasy.in/"
+  }
+]

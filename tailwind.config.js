@@ -1,0 +1,137 @@
+/** @type {import('tailwindcss').Config} */
+// Tokens ported from DESIGN.md. Class names match the original code.html mockup
+// (text-body-lg / font-body-lg etc.) so markup from the mockups drops in unchanged.
+export default {
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        surface: '#faf9ff',
+        'surface-dim': '#ccdaff',
+        'surface-bright': '#faf9ff',
+        'surface-container-lowest': '#ffffff',
+        'surface-container-low': '#f1f3ff',
+        'surface-container': '#e9edff',
+        'surface-container-high': '#e1e8ff',
+        'surface-container-highest': '#d8e2ff',
+        'surface-variant': '#d8e2ff',
+        'surface-tint': '#0c56d0',
+        'on-surface': '#051a3e',
+        'on-surface-variant': '#434654',
+        'inverse-surface': '#1d3054',
+        'inverse-on-surface': '#edf0ff',
+        outline: '#737685',
+        'outline-variant': '#c3c6d6',
+
+        primary: '#003d9b',
+        'on-primary': '#ffffff',
+        'primary-container': '#0052cc',
+        'on-primary-container': '#c4d2ff',
+        'inverse-primary': '#b2c5ff',
+        'primary-fixed': '#dae2ff',
+        'primary-fixed-dim': '#b2c5ff',
+        'on-primary-fixed': '#001848',
+        'on-primary-fixed-variant': '#0040a2',
+
+        secondary: '#994700',
+        'on-secondary': '#ffffff',
+        'secondary-container': '#fb7800',
+        'on-secondary-container': '#592600',
+        'secondary-fixed': '#ffdbc8',
+        'secondary-fixed-dim': '#ffb68b',
+        'on-secondary-fixed': '#321200',
+        'on-secondary-fixed-variant': '#753400',
+
+        tertiary: '#004b59',
+        'on-tertiary': '#ffffff',
+        'tertiary-container': '#006477',
+        'on-tertiary-container': '#76e2ff',
+        'tertiary-fixed': '#afecff',
+        'tertiary-fixed-dim': '#48d7f9',
+        'on-tertiary-fixed': '#001f27',
+        'on-tertiary-fixed-variant': '#004e5d',
+
+        error: '#ba1a1a',
+        'on-error': '#ffffff',
+        'error-container': '#ffdad6',
+        'on-error-container': '#93000a',
+
+        background: '#faf9ff',
+        'on-background': '#051a3e',
+
+        // Semantic status colors (DESIGN.md "Colors"), used only for service feedback.
+        success: '#1a7f5a',
+        'success-bright': '#36b37e',
+        'success-container': '#e3f7ee',
+        warning: '#a86a00',
+        'warning-bright': '#ffab00',
+        'warning-container': '#fff4de',
+        danger: '#c5361b',
+        'danger-bright': '#ff5630',
+        'danger-container': '#ffe9e4',
+        neutral: '#6b7280',
+        'neutral-container': '#eef0f5',
+      },
+      fontFamily: {
+        'headline-lg': ['Manrope', 'system-ui', 'sans-serif'],
+        'headline-lg-mobile': ['Manrope', 'system-ui', 'sans-serif'],
+        'headline-md': ['Manrope', 'system-ui', 'sans-serif'],
+        'body-lg': ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        'body-md': ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        'label-bold': ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        'label-sm': ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+      },
+      fontSize: {
+        'headline-lg': ['32px', { lineHeight: '40px', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'headline-lg-mobile': ['24px', { lineHeight: '32px', fontWeight: '700' }],
+        'headline-md': ['20px', { lineHeight: '28px', fontWeight: '600' }],
+        'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }],
+        'label-bold': ['12px', { lineHeight: '16px', fontWeight: '700' }],
+        'label-sm': ['11px', { lineHeight: '14px', fontWeight: '500' }],
+      },
+      spacing: {
+        base: '4px',
+        xs: '4px',
+        sm: '8px',
+        md: '16px',
+        lg: '24px',
+        xl: '32px',
+        gutter: '16px',
+        'margin-mobile': '16px',
+        'margin-desktop': '48px',
+      },
+      borderRadius: {
+        sm: '0.25rem',
+        DEFAULT: '0.5rem',
+        md: '0.75rem',
+        lg: '1rem',
+        xl: '1.5rem',
+        full: '9999px',
+      },
+      maxWidth: {
+        app: '440px', // mobile-first: the app column never exceeds a phone width
+      },
+      boxShadow: {
+        soft: '0px 4px 12px rgba(9, 30, 66, 0.08)',
+        ambient: '0px 8px 24px rgba(9, 30, 66, 0.12)',
+        frame: '0px 0px 0px 1px rgba(9, 30, 66, 0.06), 0px 24px 64px rgba(9, 30, 66, 0.16)',
+      },
+      keyframes: {
+        'fade-up': {
+          '0%': { opacity: '0', transform: 'translateY(6px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-400px 0' },
+          '100%': { backgroundPosition: '400px 0' },
+        },
+      },
+      animation: {
+        'fade-up': 'fade-up 220ms ease-out both',
+        shimmer: 'shimmer 1.4s linear infinite',
+      },
+    },
+  },
+  plugins: [],
+};

@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# TypeScript incremental build info
+tsconfig.tsbuildinfo
+
+# Vite
+.vite/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor/OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+Thumbs.db
+
+# Env files (none in use yet, but don't let one slip in later)
+.env
+.env.local
+.env.*.local

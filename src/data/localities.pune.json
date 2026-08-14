@@ -1,0 +1,211 @@
+[
+  {
+    "id": "pune",
+    "name": "Pune",
+    "aliases": ["Poona", "पुणे"],
+    "kind": "city",
+    "parentId": null,
+    "pincode": null,
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.5204, "lng": 73.8567 }
+  },
+  {
+    "id": "pimpri-chinchwad",
+    "name": "Pimpri-Chinchwad",
+    "aliases": ["PCMC", "Pimpri", "Chinchwad"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "411018",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.6298, "lng": 73.7997 }
+  },
+  {
+    "id": "pune-chikhali",
+    "name": "Chikhali",
+    "aliases": ["Chikhali Pradhikaran", "चिखली"],
+    "kind": "suburb",
+    "parentId": "pimpri-chinchwad",
+    "pincode": "411062",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.6742, "lng": 73.8283 }
+  },
+  {
+    "id": "pune-chikhali-shinde-vasti",
+    "name": "Shinde Vasti",
+    "aliases": ["Shinde Wasti", "Shindevasti", "शिंदे वस्ती"],
+    "kind": "village",
+    "parentId": "pune-chikhali",
+    "pincode": "411062",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.681, "lng": 73.833 }
+  },
+  {
+    "id": "pune-moshi",
+    "name": "Moshi",
+    "aliases": ["मोशी"],
+    "kind": "suburb",
+    "parentId": "pimpri-chinchwad",
+    "pincode": "412105",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.669, "lng": 73.856 }
+  },
+  {
+    "id": "pune-dehu-road",
+    "name": "Dehu Road",
+    "aliases": ["Dehuroad", "देहू रोड"],
+    "kind": "suburb",
+    "parentId": "pimpri-chinchwad",
+    "pincode": "412101",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.713, "lng": 73.742 }
+  },
+  {
+    "id": "pune-ravet",
+    "name": "Ravet",
+    "aliases": ["रावेत"],
+    "kind": "suburb",
+    "parentId": "pimpri-chinchwad",
+    "pincode": "412101",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.6606, "lng": 73.7322 }
+  },
+  {
+    "id": "pune-gahunje",
+    "name": "Gahunje",
+    "aliases": ["MCA Stadium", "Maharashtra Cricket Association Stadium", "गहुंजे"],
+    "kind": "village",
+    "parentId": "pune",
+    "pincode": "412101",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.6744, "lng": 73.7067 }
+  },
+  {
+    "id": "pune-talegaon-dabhade",
+    "name": "Talegaon Dabhade",
+    "aliases": ["Talegaon", "तळेगाव दाभाडे"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "410507",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.735, "lng": 73.675 }
+  },
+  {
+    "id": "pune-hinjewadi",
+    "name": "Hinjewadi",
+    "aliases": ["Hinjawadi", "Rajiv Gandhi Infotech Park", "हिंजवडी"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "411057",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.5913, "lng": 73.7389 }
+  },
+  {
+    "id": "pune-baner",
+    "name": "Baner",
+    "aliases": ["बाणेर"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "411045",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.559, "lng": 73.7868 }
+  },
+  {
+    "id": "pune-kothrud",
+    "name": "Kothrud",
+    "aliases": ["Kothrud Depot", "कोथरूड"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "411038",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.5074, "lng": 73.8077 }
+  },
+  {
+    "id": "pune-kharadi",
+    "name": "Kharadi",
+    "aliases": ["खराडी"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "411014",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.551, "lng": 73.947 }
+  },
+  {
+    "id": "pune-viman-nagar",
+    "name": "Viman Nagar",
+    "aliases": ["Vimannagar", "विमान नगर"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "411014",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.5679, "lng": 73.9143 }
+  },
+  {
+    "id": "pune-lohegaon",
+    "name": "Lohegaon",
+    "aliases": ["लोहगाव"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "411047",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.5936, "lng": 73.92 }
+  },
+  {
+    "id": "pune-wagholi",
+    "name": "Wagholi",
+    "aliases": ["वाघोली"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "412207",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.5798, "lng": 73.98 }
+  },
+  {
+    "id": "pune-hadapsar",
+    "name": "Hadapsar",
+    "aliases": ["हडपसर"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "411028",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.5089, "lng": 73.926 }
+  },
+  {
+    "id": "pune-undri",
+    "name": "Undri",
+    "aliases": ["उंड्री"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "411060",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.46, "lng": 73.92 }
+  },
+  {
+    "id": "pune-katraj",
+    "name": "Katraj",
+    "aliases": ["कात्रज"],
+    "kind": "suburb",
+    "parentId": "pune",
+    "pincode": "411046",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "center": { "lat": 18.4483, "lng": 73.857 }
+  }
+]

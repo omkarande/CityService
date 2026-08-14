@@ -1,0 +1,11 @@
+[
+  { "id": "ride-hailing", "label": "Rides", "icon": "local_taxi" },
+  { "id": "bike-taxi", "label": "Bike Taxi", "icon": "two_wheeler" },
+  { "id": "food-delivery", "label": "Food", "icon": "restaurant" },
+  { "id": "quick-commerce", "label": "Quick Commerce", "icon": "bolt" },
+  { "id": "grocery", "label": "Grocery", "icon": "shopping_basket" },
+  { "id": "ecommerce", "label": "Shopping", "icon": "shopping_bag" },
+  { "id": "courier", "label": "Courier", "icon": "local_shipping" },
+  { "id": "home-services", "label": "Home Services", "icon": "handyman" },
+  { "id": "pharmacy", "label": "Pharmacy", "icon": "medication" }
+]

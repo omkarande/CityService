@@ -1,0 +1,209 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>CityService - Search Results</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#faf9ff",
+                        "surface-container": "#e9edff",
+                        "tertiary-fixed": "#afecff",
+                        "inverse-on-surface": "#edf0ff",
+                        "on-secondary-container": "#592600",
+                        "on-surface-variant": "#434654",
+                        "inverse-surface": "#1d3054",
+                        "surface-dim": "#ccdaff",
+                        "on-tertiary-fixed": "#001f27",
+                        "on-background": "#051a3e",
+                        "on-primary-fixed": "#001848",
+                        "primary": "#003d9b",
+                        "inverse-primary": "#b2c5ff",
+                        "outline-variant": "#c3c6d6",
+                        "surface-tint": "#0c56d0",
+                        "secondary-fixed": "#ffdbc8",
+                        "surface-container-highest": "#d8e2ff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#ffb68b",
+                        "secondary-container": "#fb7800",
+                        "on-error": "#ffffff",
+                        "secondary": "#994700",
+                        "on-secondary-fixed-variant": "#753400",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f1f3ff",
+                        "surface-bright": "#faf9ff",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "surface-variant": "#d8e2ff",
+                        "primary-fixed": "#dae2ff",
+                        "tertiary-container": "#006477",
+                        "on-surface": "#051a3e",
+                        "tertiary-fixed-dim": "#48d7f9",
+                        "error": "#ba1a1a",
+                        "tertiary": "#004b59",
+                        "outline": "#737685",
+                        "on-secondary-fixed": "#321200",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#004e5d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "primary-container": "#0052cc",
+                        "on-tertiary-container": "#76e2ff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#c4d2ff",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#e1e8ff",
+                        "background": "#faf9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "margin-desktop": "48px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "label-bold": ["Plus Jakarta Sans"],
+                        "headline-md": ["Manrope"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Manrope"],
+                        "headline-lg-mobile": ["Manrope"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-bold": ["12px", { "lineHeight": "16px", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .shadow-soft {
+            box-shadow: 0px 4px 12px rgba(9, 30, 66, 0.08);
+        }
+        .shadow-ambient {
+            box-shadow: 0px 8px 24px rgba(9, 30, 66, 0.12);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased pb-24 md:pb-0 min-h-screen">
+<!-- TopAppBar -->
+<header class="bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md docked full-width top-0 sticky z-50 border-b border-outline-variant/30 dark:border-outline/20 shadow-sm dark:shadow-none flex items-center justify-between px-margin-mobile h-16 w-full">
+<div class="flex items-center gap-4">
+<button aria-label="Menu" class="text-primary dark:text-inverse-primary hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-colors p-2 rounded-full flex items-center justify-center group">
+<span class="material-symbols-outlined group-active:scale-95 transition-transform duration-150" data-icon="menu">menu</span>
+</button>
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-inverse-primary">CityService</h1>
+</div>
+<button aria-label="My Location" class="text-primary dark:text-inverse-primary hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-colors p-2 rounded-full flex items-center justify-center group">
+<span class="material-symbols-outlined group-active:scale-95 transition-transform duration-150" data-icon="my_location">my_location</span>
+</button>
+</header>
+<main class="max-w-4xl mx-auto pt-md px-margin-mobile md:px-margin-desktop md:pt-lg">
+<!-- Search Bar -->
+<div class="bg-surface-container-lowest rounded-full p-2 flex items-center shadow-ambient border border-outline-variant mb-lg relative z-10 transition-all duration-300 focus-within:shadow-xl focus-within:border-primary-container">
+<div class="pl-3 pr-2 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="bg-transparent border-none focus:ring-0 flex-1 outline-none text-body-lg font-body-lg text-on-surface placeholder-on-surface-variant h-full py-2" placeholder="Search services..." type="text">
+<button class="bg-primary text-on-primary rounded-full px-4 py-2 text-label-bold font-label-bold hover:bg-primary-container transition-colors shadow-sm ml-2 hidden sm:block">
+                Search
+            </button>
+</div>
+<div class="w-full rounded-xl overflow-hidden shadow-soft border border-outline-variant relative z-0 mb-lg group h-48">
+<div class="absolute inset-0 bg-surface-container-high/50 flex items-center justify-center text-on-surface-variant z-10 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<button class="bg-surface text-primary px-4 py-2 rounded-lg font-label-bold text-label-bold shadow-md flex items-center gap-2 hover:bg-surface-container-highest transition-colors -mt-8">
+<span class="material-symbols-outlined text-[18px]">open_in_full</span> Expand Map
+                    </button>
+</div>
+<img class="w-full h-full object-cover" data-alt="A detailed map view of an urban Indian city grid in a sleek, modern light-mode style. The map uses soft blue-grey and white tones for roads and blocks, with subtle green highlights for parks. It has a clean, vector-like glassmorphism aesthetic suitable for a premium service discovery app." data-location="Bangalore" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDW4I_XsYAnBr1zfUUIzuKx77oBc3seaUBsg_HWEcu7yNv0jpvMS8isfDXBjlPWEwIgFbeHQ_d5UFFbJCGzlshwDSdFEXixyTgi5aX5uYO8R425QAxzoH5SvlSyhD1pkkOcetP5a57XUE5nRaUfjaJNIoo9KCClPVG6BKCqIHlDSbtdIr8pqggMztrut8jVJf05w9trzoSlt2xIp3vl74uUxjzjVwD2psH_pB13lcceeh_tpecVeh6t8g">
+<div class="absolute bottom-4 right-4 flex flex-col gap-2 z-20">
+<button class="w-10 h-10 bg-surface rounded-full shadow-md flex items-center justify-center text-primary hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+<button class="w-10 h-10 bg-surface rounded-full shadow-md flex items-center justify-center text-primary hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[20px]">remove</span>
+</button>
+</div>
+</div><div class="grid grid-cols-1 md:grid-cols-12 gap-lg relative">
+<!-- Map Card Area (Sticky on Desktop, Top on Mobile) -->
+
+<!-- Service List Area -->
+<div class="flex flex-col gap-md relative">
+<div class="flex items-center justify-between mb-sm">
+<h2 class="text-headline-md font-headline-md text-on-surface">Available Services</h2>
+<!-- Contextual FAB (moved here based on sketch, normally bottom right, but sketch has it top right of list) -->
+<button aria-label="Add Service" class="w-10 h-10 bg-primary-container text-on-primary-container rounded-full shadow-md flex items-center justify-center hover:bg-primary transition-colors hover:text-on-primary group">
+<span class="material-symbols-outlined group-hover:rotate-90 transition-transform duration-300">add</span>
+</button>
+</div>
+<!-- List Items -->
+<!-- Item 1: Uber (Available) -->
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-soft border border-outline-variant/50 flex flex-col sm:flex-row gap-md items-start sm:items-center hover:border-primary-container/30 hover:shadow-ambient transition-all duration-200"><div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center border border-outline-variant/30 flex-shrink-0 relative overflow-hidden"><img class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlI54RMrq-GPTXKd8hvPbVrXKO9hVCQaMnA_wQbm6NCIT7tjdv3AiGVlR1NwAKh5VauunXshbiWQ1ApmI7XDAU1fGt4FpTW4oZHKs0sMXVe2NaQPAMvuxjhnwJqieW_73DfmtvM_qVIQX6sTVNn5NA-uIv7S5eQbGLU4xiGd16u0_GwfzRR1Nb0hy2dtN7eyg6F71l375jn3wPLdFTHzomu4ozM1CZ7C_AMhrwIGed7-MuABua_Ux1IA"></div><div class="flex-1 flex items-center justify-between"><h3 class="text-body-lg font-body-lg font-bold text-on-surface">Ride Share - Auto</h3><span class="inline-flex items-center gap-1 bg-secondary-fixed/50 text-secondary px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span> Live</span></div></div>
+<!-- Item 2: Zomato (Busy) -->
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-soft border border-outline-variant/50 flex flex-col sm:flex-row gap-md items-start sm:items-center hover:border-primary-container/30 hover:shadow-ambient transition-all duration-200"><div class="w-12 h-12 rounded-lg bg-error-container/20 flex items-center justify-center border border-error/10 flex-shrink-0 relative overflow-hidden"><img class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQmth35JE4BSgqQwYJYDr3jjyc9WxZybqWW4lJx5oYVO_pAdzYMV7H6iBB3YaAA6M2vyO05T4SGI2FAESQqwVqT4Kcc-NE8fUSykJJtONrR1qSZDyE4PmVldYQgG7yKNw7ACW7f31TH7wQ7J1EznSlVldIXC-h59gi8L7AVqmku0whqtR9sY0HGj5XqkDDyTmjDvLzY9OL7MhLYnsazWNi4lnvT393_rUtwREf3gywCpOdRvKwVtf_xg"></div><div class="flex-1 flex items-center justify-between"><h3 class="text-body-lg font-body-lg font-bold text-on-surface">Food Delivery</h3><span class="inline-flex items-center gap-1 bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">Peak Hours</span></div></div>
+<!-- Item 3: Rapido (Available) -->
+<div class="bg-surface-container-lowest rounded-xl p-md shadow-soft border border-outline-variant/50 flex flex-col sm:flex-row gap-md items-start sm:items-center hover:border-primary-container/30 hover:shadow-ambient transition-all duration-200"><div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center border border-outline-variant/30 flex-shrink-0 relative overflow-hidden"><img class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoHgWoujGuluNhDWndtmggY_LwEskKQwK52fR_MG1MH7oxRljvITqsWoAjpS1QoKSxOVU2E8hJhMZjyKo60p8P3QnV1NPxgeiyujlp87p_J3D_eoaJ7TTiRAZ7_-VvgAu6CyRpfQrUSrTK3L6XP99oHWoYEKcYDPq1UusZAHGITQPNyJM7AL8Ib1jt-H5dJZHH5fxTrTs5oEmF-OF2DrQB9gXujT4v2YyTP0TIyanrIJ6GD03hXDPRVQ"></div><div class="flex-1 flex items-center justify-between"><h3 class="text-body-lg font-body-lg font-bold text-on-surface">Bike Taxi</h3><span class="inline-flex items-center gap-1 bg-secondary-fixed/50 text-secondary px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">Live</span></div></div>
+<!-- Item 4: Unavailable Service -->
+<div class="bg-surface-container-lowest/50 rounded-xl p-md border border-outline-variant/30 flex flex-col sm:flex-row gap-md items-start sm:items-center opacity-70 grayscale-[20%]"><div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center border border-outline-variant/20 flex-shrink-0"><span class="material-symbols-outlined text-outline">local_shipping</span></div><div class="flex-1 flex items-center justify-between"><h3 class="text-body-lg font-body-lg font-bold text-on-surface-variant">Heavy Movers</h3><span class="inline-flex items-center gap-1 bg-error-container/50 text-on-error-container px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">Unavailable</span></div></div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden bg-surface/90 dark:bg-inverse-surface/90 backdrop-blur-lg text-primary dark:text-inverse-primary Labels: text-label-sm font-label-sm text-primary fixed bottom-0 w-full rounded-t-xl z-50 shadow-xl dark:shadow-none border-t border-outline-variant/20 hover:bg-surface-container-low dark:hover:bg-surface-variant/10 fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 pt-2">
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-full px-5 py-1 Active: scale-90 transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="explore">explore</span>
+<span class="mt-1">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant py-1 group hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="map">map</span>
+<span class="mt-1">Nearby</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant py-1 group hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="bookmark">bookmark</span>
+<span class="mt-1">Saved</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant py-1 group hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="person">person</span>
+<span class="mt-1">Account</span>
+</a>
+</nav>
+
+
+</body></html>
