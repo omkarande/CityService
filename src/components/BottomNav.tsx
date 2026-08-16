@@ -10,29 +10,29 @@ const TABS = [
 
 export default function BottomNav() {
   return (
-    <nav className="pb-safe sticky bottom-0 z-40 flex items-center justify-around border-t border-outline-variant/20 bg-surface/90 px-2 pt-2 backdrop-blur-lg">
-      {TABS.map((tab) => (
-        <NavLink
-          key={tab.to}
-          to={tab.to}
-          end={tab.end}
-          className={({ isActive }) =>
-            [
-              'group flex min-w-[64px] flex-col items-center justify-center rounded-full px-4 py-1 transition-all duration-200',
-              isActive
-                ? 'bg-secondary-container text-on-secondary-container'
-                : 'text-on-surface-variant hover:text-primary',
-            ].join(' ')
-          }
-        >
-          {({ isActive }) => (
-            <>
-              <Icon name={tab.icon} fill={isActive} className="transition-transform group-active:scale-90" />
-              <span className="mt-0.5 text-label-sm font-label-sm">{tab.label}</span>
-            </>
-          )}
-        </NavLink>
-      ))}
-    </nav>
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <nav className="nav-grain pointer-events-auto flex items-center justify-around rounded-[28px] px-2 py-2 shadow-soft ring-1 ring-primary/20">
+        {TABS.map((tab) => (
+          <NavLink
+            key={tab.to}
+            to={tab.to}
+            end={tab.end}
+            className={({ isActive }) =>
+              [
+                'relative z-10 group flex min-w-[64px] flex-col items-center justify-center px-3 py-1 transition-colors',
+                isActive ? 'text-primary' : 'text-on-surface/50',
+              ].join(' ')
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <Icon name={tab.icon} fill={isActive} size={22} className="transition-transform group-active:scale-90" />
+                <span className="mt-0.5 text-[10px] font-semibold tracking-wide">{tab.label}</span>
+              </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
+    </div>
   );
 }
