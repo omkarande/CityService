@@ -34,7 +34,7 @@ export default function MapPreview({ pins, highlights }: MapPreviewProps) {
   }
 
   return (
-    <div className="relative h-56 w-full overflow-hidden rounded-xl border border-outline-variant shadow-soft">
+    <div className="relative h-56 w-full overflow-hidden rounded-[28px] shadow-soft">
       <MapContainer
         center={PUNE_CENTER}
         zoom={10}
@@ -75,6 +75,16 @@ export default function MapPreview({ pins, highlights }: MapPreviewProps) {
         <ZoomButtons />
       </MapContainer>
 
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[900] h-16 bg-gradient-to-b from-black/20 to-transparent" />
+
+      <div className="absolute left-3 top-3 z-[1000] flex items-center gap-1.5">
+        <span className="flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1.5 text-label-bold text-on-surface shadow-md">
+          <Icon name="location_on" fill size={14} className="text-primary" />
+          Pune
+        </span>
+        <ExpandButton />
+      </div>
+
       {locating && (
         <div className="pointer-events-none absolute inset-0 z-[950] flex items-center justify-center bg-surface/40 backdrop-blur-[1px]">
           <span className="flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-label-bold text-primary shadow-md">
@@ -84,15 +94,29 @@ export default function MapPreview({ pins, highlights }: MapPreviewProps) {
         </div>
       )}
 
-      {/* Coverage cards riding along the bottom, as in the mockup */}
-      <div className="hide-scrollbar pointer-events-auto absolute inset-x-0 bottom-0 z-[900] flex gap-2 overflow-x-auto bg-gradient-to-t from-black/25 to-transparent p-2">
+      <div className="absolute bottom-14 left-3 z-[1000] flex items-center gap-2 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-semibold text-on-surface-variant shadow-md">
+        <span className="flex items-center gap-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-success-bright" />
+          Most
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-warning-bright" />
+          Some
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-danger-bright" />
+          Few
+        </span>
+      </div>
+
+      <div className="hide-scrollbar pointer-events-auto absolute inset-x-0 bottom-0 z-[900] flex gap-2 overflow-x-auto bg-gradient-to-t from-black/30 to-transparent p-2 pt-6">
         {highlights.map((pin) => {
           const ratio = pin.total === 0 ? 0 : pin.available / pin.total;
           return (
             <Link
               key={pin.locality.id}
               to={`/l/${pin.locality.id}`}
-              className="flex shrink-0 items-center gap-2 rounded-lg bg-surface/95 px-2.5 py-1.5 shadow-md backdrop-blur-sm transition-transform active:scale-95"
+              className="flex shrink-0 items-center gap-2 rounded-lg bg-white/95 px-2.5 py-1.5 shadow-md backdrop-blur-sm transition-transform active:scale-95"
             >
               <span
                 className="h-2 w-2 shrink-0 rounded-full"
@@ -109,8 +133,6 @@ export default function MapPreview({ pins, highlights }: MapPreviewProps) {
           );
         })}
       </div>
-
-      <ExpandButton />
     </div>
   );
 }
@@ -145,10 +167,10 @@ function ExpandButton() {
   return (
     <button
       onClick={() => navigate('/nearby')}
-      className="absolute left-3 top-3 z-[1000] flex items-center gap-1.5 rounded-full bg-surface/95 px-3 py-1.5 text-label-bold text-primary shadow-md backdrop-blur-sm transition-transform active:scale-95"
+      className="flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1.5 text-label-bold text-primary shadow-md backdrop-blur-sm transition-transform active:scale-95"
     >
       <Icon name="open_in_full" size={14} />
-      Expand map
+      Expand
     </button>
   );
 }

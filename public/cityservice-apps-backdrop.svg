@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="460" viewBox="0 0 1000 460" fill="none">
+  <title>CityService app categories backdrop</title>
+  <desc>Transparent decorative pattern representing food delivery, rides, bookings, groceries, parcels, and local services.</desc>
+  <defs>
+    <linearGradient id="fade" x1="60" y1="30" x2="920" y2="430" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#71A9FF" stop-opacity=".62"/>
+      <stop offset=".5" stop-color="#B6D4FF" stop-opacity=".48"/>
+      <stop offset="1" stop-color="#78E1B2" stop-opacity=".55"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <!-- connecting service network -->
+  <g stroke="url(#fade)" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 11" opacity=".72">
+    <path d="M102 92C210 25 297 78 370 138S535 210 625 132 787 40 904 88"/>
+    <path d="M68 350C190 430 283 363 353 303s169-93 257-18 182 105 320 35"/>
+    <path d="M173 69C215 154 194 247 123 332"/>
+    <path d="M831 67C786 154 808 251 886 342"/>
+  </g>
+
+  <!-- ambient dots -->
+  <g fill="#8FC0FF" opacity=".58">
+    <circle cx="54" cy="176" r="5"/><circle cx="254" cy="34" r="4"/><circle cx="460" cy="76" r="5"/>
+    <circle cx="574" cy="395" r="4"/><circle cx="747" cy="238" r="5"/><circle cx="962" cy="194" r="4"/>
+  </g>
+
+  <!-- Food delivery -->
+  <g transform="translate(45 38) rotate(-7 84 70)" opacity=".62" stroke="#9CC5FF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="18" y="9" width="132" height="112" rx="28" fill="#83B5FF" fill-opacity=".10"/>
+    <path d="M51 74h67M58 74c2-23 13-35 27-35s25 12 27 35M85 39V29"/>
+    <path d="M44 91h82"/>
+  </g>
+
+  <!-- Cab / ride -->
+  <g transform="translate(268 107) rotate(5 82 70)" opacity=".58" stroke="#A9CCFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="13" y="8" width="142" height="118" rx="30" fill="#83B5FF" fill-opacity=".09"/>
+    <path d="M40 75l10-27c3-8 10-13 19-13h34c9 0 16 5 19 13l10 27"/>
+    <path d="M35 76h102v25H35zM49 101v12M123 101v12"/>
+    <path d="M55 86h12M105 86h12"/>
+  </g>
+
+  <!-- Hotel / booking -->
+  <g transform="translate(487 24) rotate(-4 84 70)" opacity=".60" stroke="#8FC0FF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="16" y="9" width="138" height="116" rx="30" fill="#83B5FF" fill-opacity=".10"/>
+    <path d="M48 102V40h74v62M39 102h92"/>
+    <path d="M67 58h8M95 58h8M67 78h8M95 78h8M77 102V88h18v14"/>
+  </g>
+
+  <!-- Groceries -->
+  <g transform="translate(733 96) rotate(7 84 70)" opacity=".61" stroke="#77DFAE" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="15" y="8" width="140" height="118" rx="30" fill="#77DFAE" fill-opacity=".10"/>
+    <path d="M47 48h16l10 45h49l9-31H67"/>
+    <circle cx="81" cy="107" r="5"/><circle cx="116" cy="107" r="5"/>
+    <path d="M91 48c1-11 7-17 17-19M91 48c-10-1-16-6-18-15 10-1 17 4 18 15Z"/>
+  </g>
+
+  <!-- Parcel -->
+  <g transform="translate(113 272) rotate(5 84 70)" opacity=".58" stroke="#87B8FF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="15" y="8" width="140" height="118" rx="30" fill="#83B5FF" fill-opacity=".09"/>
+    <path d="M50 48l35-18 35 18v45L85 111 50 93V48Z"/>
+    <path d="M50 48l35 18 35-18M85 66v45M70 39l35 18"/>
+  </g>
+
+  <!-- Home services -->
+  <g transform="translate(391 286) rotate(-5 84 70)" opacity=".60" stroke="#9CC5FF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="15" y="8" width="140" height="118" rx="30" fill="#83B5FF" fill-opacity=".09"/>
+    <path d="M47 75l38-34 38 34M57 68v39h56V68"/>
+    <path d="M77 107V83h17v24"/>
+    <path d="M117 39l7-7M125 47h10"/>
+  </g>
+
+  <!-- Events / tickets -->
+  <g transform="translate(684 283) rotate(4 84 70)" opacity=".60" stroke="#83E0B4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="15" y="8" width="140" height="118" rx="30" fill="#77DFAE" fill-opacity=".10"/>
+    <path d="M44 52h82v25c-9 0-9 16 0 16v18H44V93c9 0 9-16 0-16V52Z"/>
+    <path d="M85 58v9M85 76v9M85 94v10"/>
+  </g>
+
+  <!-- soft highlights, still transparent -->
+  <circle cx="495" cy="231" r="55" fill="#9CC5FF" fill-opacity=".06" filter="url(#soft)"/>
+</svg>
