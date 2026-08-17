@@ -1,4 +1,4 @@
-import type { CoverageStatus, ConfidenceTier } from '../api/types';
+import type { AreaKind, CoverageStatus, ConfidenceTier } from '../api/types';
 
 /** "today" / "3 days ago" / "5 months ago" — freshness is a headline fact here. */
 export function relativeTime(iso: string | null): string {
@@ -53,6 +53,14 @@ export const COVERAGE_LABEL: Record<string, string> = {
   edge: 'Edge of range',
 };
 
+/** "Baner" → "BA", "Shinde Vasti" → "SV" — a stable 2-letter avatar mark for anything with a name. */
+export function initialsOf(label: string): string {
+  const words = label.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+
 /** Turns a display label into a URL-safe id fragment, e.g. "T. Nagar" → "t-nagar". */
 export function slugify(label: string): string {
   return label
@@ -68,6 +76,39 @@ export function coverageColor(ratio: number): string {
   if (ratio >= 0.3) return '#ffab00';
   return '#ff5630';
 }
+
+/** 0–5 stars, half-star steps, from the share of the catalogue that works here. */
+export function starsFor(available: number, total: number): number {
+  if (total === 0) return 0;
+  return Math.round((available / total) * 5 * 2) / 2;
+}
+
+/** Words for a star rating, independent of exactly how it was computed. */
+export function starRatingLabel(stars: number): string {
+  if (stars >= 4.5) return 'Excellent coverage';
+  if (stars >= 3.5) return 'Good coverage';
+  if (stars >= 2.5) return 'Average coverage';
+  if (stars >= 1.5) return 'Below average coverage';
+  if (stars > 0) return 'Poor coverage';
+  return 'No coverage';
+}
+
+/** Same thresholds as coverageColor, in words rather than a colour. */
+export function coverageLabel(available: number, total: number): string {
+  if (total === 0) return 'No data yet';
+  const ratio = available / total;
+  if (ratio >= 0.6) return 'Good coverage';
+  if (ratio >= 0.3) return 'Limited coverage';
+  if (available === 0) return 'None available yet';
+  return 'Few services';
+}
+
+/** Only the kinds worth calling out — 'locality' and 'city' are the uninformative default. */
+export const KIND_LABEL: Partial<Record<AreaKind, string>> = {
+  suburb: 'Suburb',
+  village: 'Village',
+  pincode: 'Pincode area',
+};
 
 /**
  * Brand colours run from near-black (Uber) to bright yellow (Blinkit), so the

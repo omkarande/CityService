@@ -3,6 +3,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import { api } from '../api/client';
 import type { AreaResult, CategoryId } from '../api/types';
 import CategoryChips from '../components/CategoryChips';
+import CoverageStars from '../components/CoverageStars';
 import EmptyState from '../components/EmptyState';
 import Icon from '../components/Icon';
 import PlatformCard from '../components/PlatformCard';
@@ -46,12 +47,6 @@ export default function Results() {
     if (!area) return [];
     return filter === 'all' ? area.results : area.results.filter((r) => r.platform.categoryId === filter);
   }, [area, filter]);
-
-  const summary = useMemo(() => {
-    const counts = { available: 0, partial: 0, unavailable: 0, unknown: 0 };
-    area?.results.forEach((r) => (counts[r.status] += 1));
-    return counts;
-  }, [area]);
 
   const availableCategories = useMemo(
     () => new Set((area?.results ?? []).map((r) => r.platform.categoryId)),
@@ -98,9 +93,19 @@ export default function Results() {
 
       <div className="animate-fade-up flex flex-col gap-md px-margin-mobile pb-lg pt-md">
         <header>
-          <h2 className="text-headline-lg-mobile font-headline-lg text-on-surface">
-            {area ? area.locality.name : '—'}
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="min-w-0 truncate text-headline-lg-mobile font-headline-lg text-on-surface">
+              {area ? area.locality.name : '—'}
+            </h2>
+            {area && (
+              <span className="shrink-0">
+                <CoverageStars
+                  available={area.results.filter((r) => r.status === 'available').length}
+                  total={area.results.length}
+                />
+              </span>
+            )}
+          </div>
           <p className="text-body-md text-on-surface-variant">
             {area?.breadcrumb.join(' · ')}
             {area?.locality.pincode && ` · ${area.locality.pincode}`}
@@ -112,15 +117,6 @@ export default function Results() {
             </p>
           )}
         </header>
-
-        {area && (
-          <div className="grid grid-cols-4 gap-2 rounded-xl border border-outline-variant/50 bg-surface-container-lowest p-3 shadow-soft">
-            <Stat value={summary.available} label="Available" tone="text-success" />
-            <Stat value={summary.partial} label="Patchy" tone="text-warning" />
-            <Stat value={summary.unavailable} label="No service" tone="text-danger" />
-            <Stat value={summary.unknown} label="Unknown" tone="text-neutral" />
-          </div>
-        )}
 
         <CategoryChips
           categories={categories}
@@ -145,14 +141,5 @@ export default function Results() {
         )}
       </div>
     </>
-  );
-}
-
-function Stat({ value, label, tone }: { value: number; label: string; tone: string }) {
-  return (
-    <div className="flex flex-col items-center">
-      <span className={`text-headline-md font-headline-md font-bold ${tone}`}>{value}</span>
-      <span className="text-center text-label-sm text-on-surface-variant">{label}</span>
-    </div>
   );
 }

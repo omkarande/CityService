@@ -211,8 +211,10 @@ Brand-level lists, per `screen3.png` — the categories-only variant in `screen1
 
 | Route | Screen | Notes |
 |---|---|---|
-| `/` | Search / Home | Search field, "use my location", recent + popular localities |
-| `/l/:localityId` | Results | Locality header, category chips, platform cards with status badges |
+| `/` | Home | City grid, hero pitch; search bar opens `/search` on focus, "use my location" |
+| `/search` | Search | Locality match list + a compact map that expands into a full-screen, zoomable picker with a draggable pin |
+| `/city/:cityId` | City | Area list for a featured city — Pune's areas carry real coverage data, every other city is presentation-only |
+| `/l/:localityId` | Results | Locality header with inline star rating, category chips, platform cards with status badges |
 | `/l/:localityId/:platformId` | Platform detail | `screen2.png` — ETA, coverage, last updated, source, thumbs up/down |
 | `/nearby` | Map | Leaflet, coverage pins around you |
 | `/saved` | Saved | localStorage-backed |
@@ -275,3 +277,20 @@ Made now so the build isn't blocked; each is cheap to revisit:
 - **Auth:** anonymous device-id reports only, or accounts? (Anonymous is fine for v1; accounts matter for report quality later)
 - **Coverage granularity:** locality + pincode gets us far. Polygons are more accurate but need real boundary data — worth it only once we have real coverage data to draw
 - **Cold start:** which real localities do we verify by hand first, and how? This is the actual gate on launching, not any of the code above
+
+## 10. Data acquisition methods (beyond one-at-a-time manual checks)
+
+Planning only, written up 2026-08-15 for team review — nothing here is implemented yet. The `claude-in-chrome` browser-automation probing described in §3 / `PROGRESS.md`'s "Real data collection" (used to verify 8 platforms for Pimpri-Chinchwad) is one instance of a broader family of methods. Six approaches, ordered by what they cost to run once built:
+
+| # | Method | Marginal cost | Automation | Accuracy | Best for |
+|---|---|---|---|---|---|
+| M1 | Call each platform's own serviceability endpoint directly — what the browser-automation probing already does | Free per call, high maintenance | Full, but brittle — undocumented endpoints break without notice | Ground truth | Calibration / spot checks, not bulk |
+| M2 | Sweep known pincode centroids (public dataset, ~19k pincodes India-wide) instead of an arbitrary coordinate grid | Free data | Full | Good in dense areas, weaker where one pincode spans a large area | First citywide pass |
+| M3 | Extract a platform's own coverage polygon/geofence, if one is exposed by its map UI | Free if it exists | Full, if found | Exact, when available | Opportunistic upgrade — don't plan a timeline around it |
+| M4 | Geocode dark-store/hub addresses once, compute coverage as radius geometry | Near zero after setup | Full after a one-time calibration against M1 | Approximate — real coverage isn't a perfect circle | Scaling quick-commerce coverage checks for free |
+| M5 | Adaptive/binary-search sampling — coarse grid first, then bisect only where neighboring points disagree | Cuts M1/M2 query volume roughly 70-90% | Full — it's an algorithm layered on M1 or M2 | High exactly at the served/not-served boundary, which is what matters | The sampling strategy to run on top of M1 or M2, not a data source itself |
+| M6 | Sample real locality/ward polygons (OSM Overpass API, municipal GIS portals) instead of raw coordinates | Free, one-time GIS effort | Full — boundaries rarely change | High representativeness, matches how localities are named in the app | Turning raw sample points into locality-level results |
+
+**Recommended path**, extending the pipeline note in §3: keep M1 (browser-automation probing) as the sparse ground-truth/calibration layer. Add M6 (real locality boundaries) + M5 (adaptive sampling) on top of M1/M2 for cheap, boundary-accurate citywide coverage — this is the direct answer to "cheapest method that's still automatable and accurate." Add M4 once a handful of quick-commerce hubs are calibrated against M1, making future Blinkit/Zepto/Instamart checks free (pure local geometry, no network call). Keep an eye out for M3 while reverse-engineering each platform for M1, but don't depend on it.
+
+**Before scaling M1 or M3 past occasional manual-triggered checks**: both call private endpoints built for these platforms' own frontends, not for outside use. Rate-limit deliberately, expect breakage without notice, and get a ToS/legal read before automating at real volume — the same caution §3's pipeline note already flags, worth repeating here since it applies to the whole family, not just the one method already in use.

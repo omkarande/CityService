@@ -23,7 +23,7 @@ npm test              # vitest — see "Known gaps" before trusting this
 
 Node 20, npm 10. No `.env`, no external services, no accounts required — everything runs local.
 
-**Not a git repo.** Nothing here is version-controlled yet. Recommend `git init` + first commit before making further changes, so this work has a rollback point.
+**Git repo, pushed to GitHub.** `origin` → `github.com/omkarande/CityService`, `main` branch. Two commits: `Initial commit: CityService prototype`, then `UI changes` (the TopBar merge below). Working tree was clean and `main` in sync with `origin/main` as of this session's end.
 
 ## Stack
 
@@ -84,14 +84,17 @@ Bonus finding, not yet acted on: Flipkart's header showed **Flipkart Minutes** (
 
 Recommended next steps: get Ravet's data from the user, get the names of the remaining 1-2 locations, then repeat this same `claude-in-chrome` method for them. The technique is now proven — it's just repetition from here.
 
+**Also this session, planning only (nothing implemented):** wrote up six methods for scaling data collection past one-locality-at-a-time manual/browser-automation checks — condensed version now in `ARCHITECTURE.md` §10, full narrative version was shared with the user as a standalone write-up (not stored in this repo). Headline recommendation: layer adaptive/binary-search sampling (bisect only where neighboring points disagree on coverage, cutting query volume ~70-90% vs a uniform grid) on top of the existing browser-automation probing, and geocode dark-store/hub addresses once so future quick-commerce coverage checks (Blinkit/Zepto/Instamart) become free local geometry instead of repeated probes. See `ARCHITECTURE.md` §10 for the full method comparison and phased plan — worth a team discussion before picking what to prototype next.
+
 ## Known gaps / honest caveats
 
 - **`mergeReports` signature changed but the test suite was never re-run to confirm.** During this session `resolve.ts`'s `mergeReports` gained a third parameter (`targetAreaId`) so a report filed on Shinde Vasti attaches even when the displayed answer was inherited from Chikhali. `resolve.test.ts` was updated to match and `tsc --noEmit` is clean, but the user asked to skip running tests while focused on UI — **run `npm test` before relying on this.**
 - Only Pune has real locality/coverage data. Every other city in the home-screen grid is presentation-only by design (see `featuredCities.ts` comment) — this is intentional, not a bug, but worth remembering before "why doesn't Delhi work" comes up.
 - Instamart's logo is Swiggy's mark (no separate asset exists) — slightly hurts scannability between the Food and Quick Commerce rows.
 - Brand logos are used for identification purposes in a directory app; standard fair-use territory, but worth a skim of Amazon/Uber's brand guidelines before any public launch.
-- No git history. No CI. No deployment target chosen yet.
-- I have never opened this app in an actual browser myself — every UI change has been verified via `tsc`/build/HMR logs only, never visually. Every screenshot-level judgment in this conversation came from the user, not from me. Worth having me (or you) do a real visual pass with a browser tool before calling any screen "done."
+- No CI. No deployment target chosen yet.
+- **Home screen only** has now been visually verified in a real browser (`claude-in-chrome`, this session) — the TopBar-merge change renders correctly, scrolls correctly, bottom nav intact, no console errors, `tsc --noEmit` clean. Every other screen (Results, PlatformDetail, Nearby, Saved, Account) is still unverified visually — confirmed via `tsc`/build only. **User asked not to use the Claude-in-Chrome browser extension for now** — for future visual checks, run `npm run dev` and hand the user the localhost URL to view themselves rather than opening it via the extension, unless they ask for it again.
+- A collaborator cloned the repo (after the `UI changes` commit) and initially saw a static, non-interactive Home page — no cards or clicks working. Root cause was **not** a repo/commit problem: `git status` was clean, `main` matched `origin/main` exactly (0 ahead/behind), `package-lock.json` is committed, `.gitignore` correctly excludes `node_modules`/`dist`/env files. Resolved itself without a confirmed root cause (their side reported "fine it is running now"). If this recurs with another collaborator: suspect a stale/incomplete `npm install`, wrong Node version, or a browser cache issue before suspecting the code — ask for the terminal output of `npm run dev` and the browser console (F12).
 
 ## Recent UI iteration (this session, chronological)
 
@@ -99,15 +102,17 @@ Recommended next steps: get Ravet's data from the user, get the names of the rem
 2. Added real platform logos (favicon-sourced, self-hosted).
 3. Added city grid + landmark photos + about section + map click-to-search (in response to "make the home page more attractive").
 4. Shrunk the hero, merged search+location into one line, dropped a redundant "Map" button, shrank the city grid to 4 cols.
-5. **Most recent**: city grid → 3 columns with landscape (3:2) tiles inside a thin-bordered panel; hero gradient band removed entirely and merged with the search row into one plain-background section, to stop the page reading as disconnected colored blocks.
+5. City grid → 3 columns with landscape (3:2) tiles inside a thin-bordered panel; hero gradient band removed entirely and merged with the search row into one plain-background section, to stop the page reading as disconnected colored blocks.
+6. Folded the standalone sticky `TopBar` into the hero card — the "CityService" wordmark + menu icon now live inside the same rounded card as the search/pitch section (`rounded-b-2xl`, `shadow-soft`), so brand and pitch read as one unit instead of a nav bar sitting on top of a separate block. `TopBar` itself is untouched and still used on every other screen (Results, PlatformDetail, Nearby, Saved, Account). Committed as `UI changes` (`0e9ebcf`), pushed to `main`.
+7. **Most recent** (after a teammate's PR, `Restyle home around a cream header, pitch card, and grainy nav.`, merged as `31c7b97`): added a dedicated `/search` screen. Home's search bar now just opens it on focus, so Home stays a plain landing page (city grid + hero pitch only, no inline search state). `/search` shows the locality match list plus a compact map (`SearchMap.tsx`) that expands into a full-screen, zoomable picker with a draggable pin — tap anywhere or drag-and-drop resolves to the nearest tracked locality, reusing the same `api.nearest` logic `useMyLocation` already relied on. Also redesigned two other card surfaces per user feedback: the City screen's area rows (`AreaCard.tsx`) now show a two-letter initials avatar toned from the theme's `-fixed` palette (identity colour, deliberately decoupled from the red/amber/green status colour), a pincode/kind tag, and a plain-English coverage read (`coverageLabel()`); the Results screen dropped its 4-number stat grid in favour of an inline 0–5 star rating (`CoverageStars.tsx`, `starsFor()` / `starRatingLabel()`) right-aligned on the same line as the locality name. Not yet committed — left staged for the user to commit themselves.
 
-Next UI feedback, if any, should build on state #5 above — that's what's currently live at `localhost:5173`.
+Next UI feedback, if any, should build on state #7 above — that's what's currently live at `localhost:5173` (or whatever port Vite falls back to if that's taken).
 
 ## Where to pick up
 
 No pending task list — everything asked for so far has been delivered. Natural next steps, roughly in priority order:
 1. Get Ravet's real data from the user (they're checking it manually) and the names of the remaining 1-2 locations; repeat the `claude-in-chrome` method from "Real data collection" above for those.
-2. Actually view the app itself (not just the external platforms just checked) in a browser and sanity-check the last few rounds of layout changes — never done, still an open gap, see caveat below.
+2. Visually sanity-check the other five screens (Results, PlatformDetail, Nearby, Saved, Account) in a real browser — only Home has been checked so far. Per this session's feedback, don't reach for `claude-in-chrome` for this unprompted; run `npm run dev` and let the user drive, or ask before using the extension again.
 3. Run `npm test`, fix anything the `mergeReports` signature change broke.
-4. `git init` + commit, so future changes are recoverable.
+4. Decide which of the six data-acquisition methods in `ARCHITECTURE.md` §10 to prototype first — the doc recommends starting with adaptive sampling layered on the existing probing method, plus hub-geocoding for quick-commerce.
 5. Everything else is incremental UI polish or phase-2 backend work — see `ARCHITECTURE.md` §4/§7/§9 for the planned shape of that.

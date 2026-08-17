@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { api } from '../api/client';
 import type { MapPin } from '../api/types';
-import AvailabilityPill from '../components/AvailabilityPill';
+import AreaCard from '../components/AreaCard';
 import EmptyState from '../components/EmptyState';
 import Icon from '../components/Icon';
 import TopBar from '../components/TopBar';
@@ -74,24 +74,13 @@ export default function City() {
             {city.areas.map((area) => {
               const pin = area.localityId ? pinsById.get(area.localityId) : undefined;
               return (
-                <Link
+                <AreaCard
                   key={area.label}
                   to={`/l/${area.localityId ?? `${city.id}-${slugify(area.label)}`}`}
-                  className="flex items-center gap-md rounded-xl border border-outline-variant/50 bg-surface-container-lowest p-3 transition-colors hover:border-primary-container/40 hover:bg-surface-container-low active:scale-[0.99]"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-container text-primary">
-                    <Icon name="location_on" size={20} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-body-lg font-semibold text-on-surface">{area.label}</span>
-                    <span className="block text-body-md text-on-surface-variant">{city.name}</span>
-                  </span>
-                  {pin ? (
-                    <AvailabilityPill available={pin.available} total={pin.total} />
-                  ) : (
-                    <Icon name="chevron_right" className="text-outline" size={20} />
-                  )}
-                </Link>
+                  label={area.label}
+                  cityName={city.name}
+                  pin={pin}
+                />
               );
             })}
           </div>

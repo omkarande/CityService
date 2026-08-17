@@ -7,6 +7,7 @@ interface SearchBarProps {
   autoFocus?: boolean;
   className?: string;
   trailing?: React.ReactNode;
+  onFocus?: () => void;
 }
 
 export default function SearchBar({
@@ -16,6 +17,7 @@ export default function SearchBar({
   autoFocus = false,
   className = '',
   trailing,
+  onFocus,
 }: SearchBarProps) {
   return (
     <div
@@ -31,6 +33,7 @@ export default function SearchBar({
         value={value}
         autoFocus={autoFocus}
         onChange={(event) => onChange(event.target.value)}
+        onFocus={onFocus}
         placeholder={placeholder}
         aria-label="Search a locality or pincode"
         className="h-full min-w-0 flex-1 border-none bg-transparent text-body-md text-on-surface outline-none placeholder:text-on-surface-variant focus:ring-0 [&::-webkit-search-cancel-button]:hidden"

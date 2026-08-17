@@ -1,12 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import type { LocalitySuggestion, MapPin } from '../api/types';
-import AvailabilityPill from '../components/AvailabilityPill';
+import type { MapPin } from '../api/types';
 import CityGrid from '../components/CityGrid';
-import EmptyState from '../components/EmptyState';
 import Icon from '../components/Icon';
-import LocalityRow from '../components/LocalityRow';
 import SearchBar from '../components/SearchBar';
 
 type LocateState = { status: 'idle' } | { status: 'locating' } | { status: 'error'; message: string };
@@ -14,34 +11,12 @@ type LocateState = { status: 'idle' } | { status: 'locating' } | { status: 'erro
 export default function Home() {
   const navigate = useNavigate();
 
-  const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<LocalitySuggestion[]>([]);
   const [pins, setPins] = useState<MapPin[]>([]);
   const [locate, setLocate] = useState<LocateState>({ status: 'idle' });
 
   useEffect(() => {
     api.mapPins().then(setPins);
   }, []);
-
-  useEffect(() => {
-    if (query.trim().length < 2) {
-      setSuggestions([]);
-      return;
-    }
-    let cancelled = false;
-    const timer = setTimeout(() => {
-      api.search(query).then((results) => {
-        if (!cancelled) setSuggestions(results);
-      });
-    }, 120);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [query]);
-
-  const pinsById = useMemo(() => new Map(pins.map((p) => [p.locality.id, p])), [pins]);
 
   function useMyLocation() {
     if (!navigator.geolocation) {
@@ -64,8 +39,6 @@ export default function Home() {
       { timeout: 10_000 },
     );
   }
-
-  const searching = query.trim().length >= 2;
 
   return (
     <>
@@ -101,8 +74,9 @@ export default function Home() {
           </div>
 
           <SearchBar
-            value={query}
-            onChange={setQuery}
+            value=""
+            onChange={() => {}}
+            onFocus={() => navigate('/search')}
             trailing={
               <button
                 type="button"
@@ -125,67 +99,32 @@ export default function Home() {
           )}
         </header>
 
-        {!searching && (
-          <div className="px-6 pb-3 pt-4">
-            <div className="relative overflow-hidden rounded-[28px] bg-primary px-md py-5 text-on-primary">
-              <img
-                src="/cityservice-apps-backdrop.svg"
-                alt=""
-                className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-45"
-              />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/45 via-black/20 to-transparent" />
-              <div className="relative [text-shadow:0_1px_1px_rgba(0,0,0,0.7),0_2px_10px_rgba(0,0,0,0.55)]">
-                <p className="text-label-bold uppercase tracking-[0.14em] text-white/90">CityService</p>
-                <h2 className="mt-2 text-headline-lg-mobile font-headline-lg-mobile text-white">
-                  What actually works where you live?
-                </h2>
-                <p className="mt-2 max-w-[34ch] text-body-md text-white/90">
-                  See which delivery, ride and quick-commerce apps really serve an address.
-                </p>
-              </div>
+        <div className="px-6 pb-3 pt-4">
+          <div className="relative overflow-hidden rounded-[28px] bg-primary px-md py-5 text-on-primary">
+            <img
+              src="/cityservice-apps-backdrop.svg"
+              alt=""
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-45"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/45 via-black/20 to-transparent" />
+            <div className="relative [text-shadow:0_1px_1px_rgba(0,0,0,0.7),0_2px_10px_rgba(0,0,0,0.55)]">
+              <p className="text-label-bold uppercase tracking-[0.14em] text-white/90">CityService</p>
+              <h2 className="mt-2 text-headline-lg-mobile font-headline-lg-mobile text-white">
+                What actually works where you live?
+              </h2>
+              <p className="mt-2 max-w-[34ch] text-body-md text-white/90">
+                See which delivery, ride and quick-commerce apps really serve an address.
+              </p>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="animate-fade-up px-6 pb-lg pt-4">
-        {searching ? (
-          <section className="flex flex-col gap-sm">
-            <h3 className="text-label-bold uppercase tracking-wider text-on-surface-variant">
-              Results for “{query.trim()}”
-            </h3>
-            {suggestions.length === 0 ? (
-              <EmptyState
-                icon="search_off"
-                title="Nothing matched"
-                body="Only Pune localities are seeded so far. Try “Shinde Vasti”, “Baner” or a 411xxx pincode."
-              />
-            ) : (
-              <div className="flex flex-col gap-sm">
-                {suggestions.map((suggestion) => {
-                  const pin = pinsById.get(suggestion.locality.id);
-                  return (
-                    <LocalityRow
-                      key={suggestion.locality.id}
-                      suggestion={suggestion}
-                      trailing={
-                        <span className="flex shrink-0 items-center gap-1">
-                          {pin && <AvailabilityPill available={pin.available} total={pin.total} />}
-                          <Icon name="chevron_right" className="text-outline" size={20} />
-                        </span>
-                      }
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        ) : (
-          <section className="flex flex-col gap-sm">
-            <h3 className="text-label-bold uppercase tracking-wider text-on-surface-variant">Explore by city</h3>
-            <CityGrid />
-          </section>
-        )}
+        <section className="flex flex-col gap-sm">
+          <h3 className="text-label-bold uppercase tracking-wider text-on-surface-variant">Explore by city</h3>
+          <CityGrid />
+        </section>
       </div>
     </>
   );
