@@ -8,10 +8,12 @@ import PlatformDetail from './screens/PlatformDetail';
 import Nearby from './screens/Nearby';
 import Saved from './screens/Saved';
 import Account from './screens/Account';
+import Probe from './screens/Probe';
 
 export default function App() {
   return (
     <Routes>
+      {import.meta.env.DEV && <Route path="/probe" element={<Probe />} />}
       <Route element={<AppShell />}>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />

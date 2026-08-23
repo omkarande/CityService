@@ -294,3 +294,48 @@ Planning only, written up 2026-08-15 for team review — nothing here is impleme
 **Recommended path**, extending the pipeline note in §3: keep M1 (browser-automation probing) as the sparse ground-truth/calibration layer. Add M6 (real locality boundaries) + M5 (adaptive sampling) on top of M1/M2 for cheap, boundary-accurate citywide coverage — this is the direct answer to "cheapest method that's still automatable and accurate." Add M4 once a handful of quick-commerce hubs are calibrated against M1, making future Blinkit/Zepto/Instamart checks free (pure local geometry, no network call). Keep an eye out for M3 while reverse-engineering each platform for M1, but don't depend on it.
 
 **Before scaling M1 or M3 past occasional manual-triggered checks**: both call private endpoints built for these platforms' own frontends, not for outside use. Rate-limit deliberately, expect breakage without notice, and get a ToS/legal read before automating at real volume — the same caution §3's pipeline note already flags, worth repeating here since it applies to the whole family, not just the one method already in use.
+
+### Status: Pune + PCMC pipeline foundation (built 2026-08-19)
+
+Scoped M2/M5/M6 down from "nationwide" to specifically Pune Municipal Corporation (PMC) + Pimpri-Chinchwad Municipal Corporation (PCMC), since that's the actual near-term area of interest. Concrete findings, not estimates:
+
+- **M2 — `src/data/pincodes.pune-pcmc.json`**: 55 real pincodes (39 PMC, 15 PCMC, 1 left `"uncertain"` rather than force-classified), each individually confirmed via `api.postalpincode.in` (not scraped in bulk — verified one pincode at a time) and geocoded via Nominatim. This is fewer than the ~90-100 originally guessed in planning discussion — corrected downward once actually checked, per this project's own data-honesty principle. Treat 55 as a verified floor: the sweep covered 411xxx fully plus a 412xxx candidate band, not proven exhaustive for PCMC's outer edge.
+- **M6 — `src/data/boundaries.pune-pcmc.geojson`**: honest negative result — **neither PMC nor PCMC has an administrative boundary polygon in OpenStreetMap**, verified two independent ways (Overpass relation search, Nominatim lookup). What the file actually holds is the coarser admin_level-6 taluka polygons that do exist (Pune City + Haveli subdistricts), clearly labeled as coarser than a true municipal boundary, plus real city-center points. Getting an actual PMC/PCMC polygon needs one of: the municipal corporations' own GIS portals, digitizing an official ward map, or an approximation from taluka ∩ seeded-locality points — none attempted yet, flagged as an open follow-up rather than faked.
+- **M5 — `scripts/pick-next-check.mjs`**: working next-point picker (farthest-point coarse sampling, then boundary-bisection where neighboring pincodes disagree), scoped to the 8 tier-1 platforms (`zepto`, `blinkit`, `instamart`, `swiggy`, `zomato`, `amazon`, `flipkart`, `bigbasket`) agreed as the first priority tier over ride-hailing/courier/home-services. Auto-seeds `src/data/checkpoints.log.json` from the real Pimpri-Chinchwad `source: "probe"` records already in `coverage.seed.json`. Run via `node scripts/pick-next-check.mjs [count]`.
+
+M1 checking (actually probing the suggested pincode/platform pairs via `claude-in-chrome`) has not resumed yet using this new systematic ordering — see `PROGRESS.md` for current status and next steps.
+
+### Coverage collection (how we get yes/no, not just places)
+
+None of the eight first-wave platforms publish a public “do you deliver to this pincode?” API for a third-party directory. Seller APIs, Swiggy MCP, and courier pincode APIs answer a different question. Bare HTTP already failed. So coverage is still collected by watching each platform’s **own public website** after setting a location (M1). Geography fetch scripts cannot download this.
+
+**What a live check looks at**
+
+| Category | Platforms | Available | Partial | Unavailable |
+|---|---|---|---|---|
+| Quick-commerce | Zepto, Blinkit, Instamart, BB Now | storefront + products + ETA | thin catalogue / very long ETA | not-in-your-area |
+| Food | Swiggy, Zomato | real restaurant list with ETAs | few far kitchens, 45–60+ min | location rejected |
+| E-commerce | Amazon, Flipkart, BigBasket scheduled | pincode accepted + a delivery promise | accepted, only slow shipping | cannot deliver |
+
+Always write `source: "probe"`. Captcha / login wall / empty mess → `unknown`. If the UI names a dark store, write that name into `src/data/hubs.pune-pcmc.json`.
+
+**Two-ring hub model (M4) — Zepto / Blinkit / Instamart only**
+
+Coverage is “stores + a short bike ride,” not a city switch. A flat 5–6 km “everywhere deliverable” circle over-claims on the outskirts.
+
+| Distance to nearest same-platform store | Status we infer | Source |
+|---|---|---|
+| 0–inner (~2.5–3 km) | `available`, `coverageStrength: wide` | `seed` until an M1 check exists |
+| inner–edge (~3–5 km) | `partial`, `coverageStrength: edge` | `seed`, then replace with `probe` when checked |
+| beyond edge (~5 km+) | do **not** invent `unavailable` | we may not know every store yet |
+
+Defaults: Zepto `innerKm: 2.5` / `edgeKm: 4.5`; Blinkit and Instamart `3` / `5`. After a few live points around the same hub, replace those defaults with that store’s measured radius. Overlapping stores are a union of disks. This model does **not** apply to Swiggy food, Zomato, Amazon, or Flipkart scheduled.
+
+**Assisted probe loop (built 2026-08-23)**
+
+1. `node scripts/pick-next-check.mjs` (or the `/probe` console) — M5, hub-edge biased for q-comm (skip the inner disk; check the rim).
+2. Open the platform site, set the copied place string in **their** location picker.
+3. One-click record → `checkpoints.log.json` + a `probe` row in `coverage.seed.json` + optional hub.
+4. `node scripts/infer-hubs.mjs` writes `source: seed` disks. Never overwrites a `probe`. Never marks geometry as `verified`.
+
+Dev-only UI: `npm run dev` → [http://localhost:5173/probe](http://localhost:5173/probe). CLI aliases: `npm run pipeline:pick` / `pipeline:record` / `pipeline:infer`. Do not add unattended Playwright against platform checkers.

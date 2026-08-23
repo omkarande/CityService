@@ -29,15 +29,7 @@ export default function TopBar({ title = 'CityService', back = false, backLabel,
               )}
             </button>
           ) : (
-            <>
-              <button
-                aria-label="Menu"
-                className="-ml-2 rounded-full p-2 text-primary transition-colors hover:bg-surface-container-highest active:scale-95"
-              >
-                <Icon name="menu" />
-              </button>
-              <h1 className="text-headline-md font-headline-md font-bold text-primary">{title}</h1>
-            </>
+            <h1 className="text-headline-md font-headline-md font-bold text-primary">{title}</h1>
           )}
         </div>
         {action}

@@ -1,0 +1,618 @@
+{
+  "_source": [
+    "https://api.postalpincode.in/pincode/{code} — India Post pincode directory API, queried per-pincode for 411001-411062 and a candidate set of 412xxx codes on 2026-08-19",
+    "https://nominatim.openstreetmap.org/search?postalcode={code}&country=India — OpenStreetMap Nominatim, used to geocode a real centroid for each verified pincode, 1 req/sec, queried 2026-08-19"
+  ],
+  "_fetchedAt": "2026-08-19",
+  "_note": "Every pincode below was individually confirmed via api.postalpincode.in (District: Pune returned by the API itself, not assumed) — none were invented or estimated. Coverage: all 62 numeric codes in the 411001-411062 range were swept (8 do not exist / returned no result: 411010, 411029, 411049, 411050, 411053-411056, 411059); a broader 412xxx candidate sweep (412100-412116, 412207, 412216, 412308) surfaced mostly unrelated rural-taluka postal circles (Purandar, Baramati, Maval, Velhe, Mulshi talukas) which were excluded after inspecting their real office names — see the individual \"note\" field on any entry with mixed/ambiguous content. Net result is 55 real pincodes: 39 in Pune Municipal Corporation (PMC), 15 in Pimpri-Chinchwad Municipal Corporation (PCMC) area, 1 left \"uncertain\" (412207/Wagholi — mixed with rural villages, not forced into either bucket). This is smaller than the roadmap's original ~90-100 estimate; that estimate was a rough guess made before verification and is corrected downward here now that the real data has been checked, per this app's own \"honesty about data\" principle (see ARCHITECTURE.md §3) — a same-day sweep of 411xxx + likely-adjacent 412xxx ranges is not guaranteed exhaustive (e.g. PCMC could have additional codes outside the ranges tried), so treat 55 as a solid verified floor, not a hard ceiling.",
+  "_areaClassificationMethod": "area: \"PMC\" or \"PCMC\" was assigned from each pincode's real post-office Block field (\"Pune City\" => PMC) and office-name keyword matches for known PCMC localities (Pimpri, Chinchwad, Nigdi, Akurdi, Bhosari, Chikhali, Moshi, Wakad, etc.). Where a pincode's real office list mixes a genuine PMC/PCMC locality with something administratively outside both (a Cantonment Board, a separate municipal council, or a rural taluka village), it is kept but flagged via the \"note\" field rather than silently resolved — see 411057, 412101, 412105. area: \"uncertain\" means the classification could not be made confidently from office names alone.",
+  "pincodes": [
+    {
+      "pincode": "411001",
+      "officeNames": [
+        "C D A (O)",
+        "Dr.B.A. Chowk",
+        "Ghorpuri Bazar",
+        "N.W. College",
+        "Pune",
+        "Pune Cantt East",
+        "Pune New Bazar",
+        "Sachapir Street"
+      ],
+      "area": "PMC",
+      "lat": 18.5336118,
+      "lng": 73.8806684
+    },
+    {
+      "pincode": "411002",
+      "officeNames": [
+        "Bajirao Road",
+        "Kapad Ganj",
+        "Nana Peth",
+        "Pune City",
+        "Raviwar Peth",
+        "Shukrawar Peth (Pune)"
+      ],
+      "area": "PMC",
+      "lat": 18.5244698,
+      "lng": 73.8804855
+    },
+    {
+      "pincode": "411003",
+      "officeNames": [
+        "Ammunition Factory Khadki",
+        "East Khadki",
+        "H.E. Factory",
+        "Khadki",
+        "Khadki Bazar"
+      ],
+      "area": "PMC",
+      "lat": 18.5554575,
+      "lng": 73.8444201
+    },
+    {
+      "pincode": "411004",
+      "officeNames": [
+        "A.R. Shala",
+        "Deccan Gymkhana",
+        "Film Institute"
+      ],
+      "area": "PMC",
+      "lat": 18.5165336,
+      "lng": 73.8361801
+    },
+    {
+      "pincode": "411005",
+      "officeNames": [
+        "Congress House Road",
+        "S.S.C.Exam Board",
+        "Shivajinagar",
+        "Shivajinagar (Pune)"
+      ],
+      "area": "PMC",
+      "lat": 18.4940303,
+      "lng": 73.8877868
+    },
+    {
+      "pincode": "411006",
+      "officeNames": [
+        "Yerwada",
+        "Yerwada T.S."
+      ],
+      "area": "PMC",
+      "lat": 18.5615468,
+      "lng": 73.9189855
+    },
+    {
+      "pincode": "411007",
+      "officeNames": [
+        "Aundh",
+        "Aundh T.S.",
+        "Ganeshkhind"
+      ],
+      "area": "PMC",
+      "lat": 18.5586057,
+      "lng": 73.8117718
+    },
+    {
+      "pincode": "411008",
+      "officeNames": [
+        "Baner Road",
+        "N.C.L. Pune"
+      ],
+      "area": "PMC",
+      "lat": 18.5416861,
+      "lng": 73.8087947
+    },
+    {
+      "pincode": "411009",
+      "officeNames": [
+        "Parvati",
+        "Parvati Gaon"
+      ],
+      "area": "PMC",
+      "lat": 18.477334,
+      "lng": 73.8508291
+    },
+    {
+      "pincode": "411011",
+      "officeNames": [
+        "Kasba Peth",
+        "Mangalwar Peth (Pune)",
+        "Rasta Peth"
+      ],
+      "area": "PMC",
+      "lat": 18.5563921,
+      "lng": 73.9012993
+    },
+    {
+      "pincode": "411012",
+      "officeNames": [
+        "Dapodi",
+        "Dapodi Bazar"
+      ],
+      "area": "PCMC",
+      "lat": 18.5831604,
+      "lng": 73.8304239
+    },
+    {
+      "pincode": "411013",
+      "officeNames": [
+        "Hadpsar I.E."
+      ],
+      "area": "PMC",
+      "lat": 18.5127456,
+      "lng": 73.9199849
+    },
+    {
+      "pincode": "411014",
+      "officeNames": [
+        "9 DRD",
+        "Dukirkline",
+        "Vadgaon Sheri",
+        "Viman nagar"
+      ],
+      "area": "PMC",
+      "lat": 18.5536731,
+      "lng": 73.9334361
+    },
+    {
+      "pincode": "411015",
+      "officeNames": [
+        "Dhanori",
+        "Dighi Camp",
+        "Vishrantwadi"
+      ],
+      "area": "PCMC",
+      "lat": 18.5926471,
+      "lng": 73.8908993
+    },
+    {
+      "pincode": "411016",
+      "officeNames": [
+        "Gokhalenagar",
+        "Govt. Polytechnic",
+        "Model Colony",
+        "Shivaji Housing Society"
+      ],
+      "area": "PMC",
+      "lat": 18.5331897,
+      "lng": 73.8312853
+    },
+    {
+      "pincode": "411017",
+      "officeNames": [
+        "Kalewadi",
+        "Pimpri Colony",
+        "Pimpri Waghire"
+      ],
+      "area": "PCMC",
+      "lat": 18.6105022,
+      "lng": 73.7917333
+    },
+    {
+      "pincode": "411018",
+      "officeNames": [
+        "Masulkar Colony",
+        "Nehrunagar (Pune)",
+        "Pimpri P F"
+      ],
+      "area": "PCMC",
+      "lat": 18.5901,
+      "lng": 73.8357805
+    },
+    {
+      "pincode": "411019",
+      "officeNames": [
+        "Chinchwad East",
+        "M.Phulenagar"
+      ],
+      "area": "PCMC",
+      "lat": 18.6428964,
+      "lng": 73.7999983
+    },
+    {
+      "pincode": "411020",
+      "officeNames": [
+        "Botanical Garden (Pune)",
+        "Range Hills"
+      ],
+      "area": "PMC",
+      "lat": 18.5583442,
+      "lng": 73.8380193
+    },
+    {
+      "pincode": "411021",
+      "officeNames": [
+        "Armament",
+        "Bavdhan",
+        "Sus"
+      ],
+      "area": "PMC",
+      "lat": 18.5300763,
+      "lng": 73.7765931
+    },
+    {
+      "pincode": "411022",
+      "officeNames": [
+        "Srpf"
+      ],
+      "area": "PMC",
+      "lat": 18.5056241,
+      "lng": 73.9065811
+    },
+    {
+      "pincode": "411023",
+      "officeNames": [
+        "Kudje",
+        "Mandvi BK",
+        "N.D.A. Khadakwasla",
+        "Shivane",
+        "Uttamnagar"
+      ],
+      "area": "PMC",
+      "lat": 18.5629111,
+      "lng": 73.9466638
+    },
+    {
+      "pincode": "411024",
+      "officeNames": [
+        "Khadakwasla R.S."
+      ],
+      "area": "PMC",
+      "lat": 18.4432311,
+      "lng": 73.7856206
+    },
+    {
+      "pincode": "411026",
+      "officeNames": [
+        "Bhosari I.E.",
+        "Indrayaninagar"
+      ],
+      "area": "PCMC",
+      "lat": 18.6387021,
+      "lng": 73.833317
+    },
+    {
+      "pincode": "411027",
+      "officeNames": [
+        "Aundh Camp",
+        "Sangavi"
+      ],
+      "area": "PMC",
+      "lat": 18.5874506,
+      "lng": 73.7951144
+    },
+    {
+      "pincode": "411028",
+      "officeNames": [
+        "Gondhale Nagar",
+        "Hadapsar",
+        "Sasanenagar"
+      ],
+      "area": "PMC",
+      "lat": 18.5043386,
+      "lng": 73.9348371
+    },
+    {
+      "pincode": "411030",
+      "officeNames": [
+        "Lokmanyanagar",
+        "Narayan Peth",
+        "Rashtra Bhasha Bhavan",
+        "S.P. College",
+        "Sadashiv Peth",
+        "Shaniwar Peth (Pune)"
+      ],
+      "area": "PMC",
+      "lat": 18.5078252,
+      "lng": 73.8467021
+    },
+    {
+      "pincode": "411031",
+      "officeNames": [
+        "C M E"
+      ],
+      "area": "PMC",
+      "lat": 18.5899243,
+      "lng": 73.8621881
+    },
+    {
+      "pincode": "411032",
+      "officeNames": [
+        "Airport (Pune)",
+        "Iaf Station",
+        "Vidyanagar (Pune)"
+      ],
+      "area": "PMC",
+      "lat": 18.5827292,
+      "lng": 73.9009163
+    },
+    {
+      "pincode": "411033",
+      "officeNames": [
+        "Chinchwadgaon",
+        "Jambhe",
+        "Punawale",
+        "Thathawade",
+        "Thergaon"
+      ],
+      "area": "PCMC",
+      "lat": 18.6243858,
+      "lng": 73.7729986
+    },
+    {
+      "pincode": "411034",
+      "officeNames": [
+        "Kasarwadi"
+      ],
+      "area": "PCMC",
+      "lat": 18.6104782,
+      "lng": 73.8194399
+    },
+    {
+      "pincode": "411035",
+      "officeNames": [
+        "Akurdi"
+      ],
+      "area": "PCMC",
+      "lat": 18.7071315,
+      "lng": 73.8612041
+    },
+    {
+      "pincode": "411036",
+      "officeNames": [
+        "Mundhva",
+        "Mundhva AV"
+      ],
+      "area": "PMC",
+      "lat": 18.5312754,
+      "lng": 73.9379756
+    },
+    {
+      "pincode": "411037",
+      "officeNames": [
+        "Bibvewadi",
+        "Market Yard (Pune)",
+        "Salisbury Park",
+        "T.V. Nagar"
+      ],
+      "area": "PMC",
+      "lat": 18.5206267,
+      "lng": 73.8938597
+    },
+    {
+      "pincode": "411038",
+      "officeNames": [
+        "Bhusari Colony",
+        "Ex. Serviceman Colony",
+        "Kothrud"
+      ],
+      "area": "PMC",
+      "lat": 18.5069367,
+      "lng": 73.8073895
+    },
+    {
+      "pincode": "411039",
+      "officeNames": [
+        "Bhosarigoan"
+      ],
+      "area": "PCMC",
+      "lat": 18.6502249,
+      "lng": 73.8740652
+    },
+    {
+      "pincode": "411040",
+      "officeNames": [
+        "AFMC",
+        "Wanowarie"
+      ],
+      "area": "PMC",
+      "lat": 18.4914233,
+      "lng": 73.8991404
+    },
+    {
+      "pincode": "411041",
+      "officeNames": [
+        "Dhayari",
+        "Nanded",
+        "Sinhgad Technical Education Society",
+        "Vadgaon Budruk"
+      ],
+      "area": "PMC",
+      "lat": 18.4421924,
+      "lng": 73.8150235
+    },
+    {
+      "pincode": "411042",
+      "officeNames": [
+        "Bhavani Peth",
+        "Ghorpade Peth",
+        "Guruwar Peth",
+        "Swargate",
+        "Swargate Chowk"
+      ],
+      "area": "PMC",
+      "lat": 18.4962672,
+      "lng": 73.8255844
+    },
+    {
+      "pincode": "411043",
+      "officeNames": [
+        "Dhankawadi"
+      ],
+      "area": "PMC",
+      "lat": 18.4660749,
+      "lng": 73.8541829
+    },
+    {
+      "pincode": "411044",
+      "officeNames": [
+        "P.C.N.T.",
+        "Yamunanagar"
+      ],
+      "area": "PMC",
+      "lat": 18.6559462,
+      "lng": 73.7696861
+    },
+    {
+      "pincode": "411045",
+      "officeNames": [
+        "Baner Gaon",
+        "N.I.A."
+      ],
+      "area": "PMC",
+      "lat": 18.5669733,
+      "lng": 73.780007
+    },
+    {
+      "pincode": "411046",
+      "officeNames": [
+        "Ambegaon BK",
+        "Katraj"
+      ],
+      "area": "PMC",
+      "lat": 18.4512561,
+      "lng": 73.8491522
+    },
+    {
+      "pincode": "411047",
+      "officeNames": [
+        "Lohogaon"
+      ],
+      "area": "PMC",
+      "lat": 18.6030688,
+      "lng": 73.9213873
+    },
+    {
+      "pincode": "411048",
+      "officeNames": [
+        "Khondhwa KH",
+        "Kondhwa BK",
+        "Kondhwa Lh",
+        "N I B M"
+      ],
+      "area": "PMC",
+      "lat": 18.4680953,
+      "lng": 73.8899606
+    },
+    {
+      "pincode": "411051",
+      "officeNames": [
+        "Anandnagar (Pune)"
+      ],
+      "area": "PMC",
+      "lat": 18.4763146,
+      "lng": 73.8227963
+    },
+    {
+      "pincode": "411052",
+      "officeNames": [
+        "Karvenagar",
+        "Navsahyadri"
+      ],
+      "area": "PMC",
+      "lat": 18.4968925,
+      "lng": 73.816953
+    },
+    {
+      "pincode": "411057",
+      "officeNames": [
+        "Infotech  Park (Hinjawadi)",
+        "Marunji",
+        "Wakad"
+      ],
+      "area": "PCMC",
+      "note": "Contains both a PMC-side locality (Infotech Park/Hinjewadi, Marunji — already tracked under parentId \"pune\", not PCMC, in src/data/localities.pune.json) and a PCMC-side locality (Wakad). Classified PCMC here only because Wakad is the PCMC-relevant part; Hinjewadi/Marunji checks should use the existing \"pune-hinjewadi\" locality (PMC), not this pincode's PCMC classification.",
+      "lat": 18.5908698,
+      "lng": 73.7392445
+    },
+    {
+      "pincode": "411058",
+      "officeNames": [
+        "Warje"
+      ],
+      "area": "PMC",
+      "lat": 18.4846025,
+      "lng": 73.7996986
+    },
+    {
+      "pincode": "411060",
+      "officeNames": [
+        "Mohamadwadi"
+      ],
+      "area": "PMC",
+      "lat": 18.4602358,
+      "lng": 73.9137222
+    },
+    {
+      "pincode": "411061",
+      "officeNames": [
+        "Pimple Gurav"
+      ],
+      "area": "PCMC",
+      "lat": 18.5914601,
+      "lng": 73.8172208
+    },
+    {
+      "pincode": "411062",
+      "officeNames": [
+        "Chikhali",
+        "Rupeenagar",
+        "Talwade"
+      ],
+      "area": "PCMC",
+      "lat": 18.6763141,
+      "lng": 73.8159038
+    },
+    {
+      "pincode": "412101",
+      "officeNames": [
+        "Cod Dehu Road",
+        "Dehu Road Cantt",
+        "Kiwale",
+        "Ordnance Factory Dehu Road",
+        "Ravet",
+        "Salumbre"
+      ],
+      "area": "PCMC",
+      "note": "Contains both genuine PCMC localities (Ravet, Kiwale — already tracked in src/data/localities.pune.json) and Dehu Road Cantonment offices (Cod Dehu Road, Dehu Road Cantt, Ordnance Factory Dehu Road) — a Cantonment Board is administratively separate from PCMC even though geographically adjacent. Classified PCMC to match existing app data (Ravet/Dehu Road already seeded under parentId \"pimpri-chinchwad\"), but the cantonment portion is not truly PCMC.",
+      "lat": 18.6610214,
+      "lng": 73.7335156
+    },
+    {
+      "pincode": "412105",
+      "officeNames": [
+        "Alandi Devachi",
+        "Charoli BK",
+        "Chimbli",
+        "Dhanore",
+        "Markal",
+        "Moshi",
+        "Solu"
+      ],
+      "area": "PCMC",
+      "note": "Contains genuine PCMC locality Moshi (already tracked in src/data/localities.pune.json) mixed with Alandi Devachi (a separate municipal council) and Khed-taluka villages (Charoli BK, Chimbli, Dhanore, Markal, Solu). Classified PCMC to match existing app data, but only the Moshi portion is confirmed PCMC.",
+      "lat": 18.6593601,
+      "lng": 73.885274
+    },
+    {
+      "pincode": "412207",
+      "officeNames": [
+        "Ashtapur",
+        "Dahitane",
+        "Kesnand",
+        "Koregaon Bhivar",
+        "Rahu",
+        "Telewadi",
+        "Vadebholhai",
+        "Vagholi",
+        "Walki"
+      ],
+      "area": "uncertain",
+      "note": "Contains Vagholi (matches existing \"pune-wagholi\" locality, tracked under PMC/parentId \"pune\") mixed with rural Haveli/Daund taluka villages (Ashtapur, Dahitane, Kesnand, Koregaon Bhivar, Rahu, Telewadi, Vadebholhai, Walki). Wagholi itself is a real, rapidly urbanizing eastern suburb, but this postal circle is mostly rural — left \"uncertain\" rather than forced into PMC.",
+      "lat": 18.5852547,
+      "lng": 73.9841433
+    }
+  ]
+}
