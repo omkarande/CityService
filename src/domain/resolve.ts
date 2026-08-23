@@ -23,6 +23,7 @@ import {
   scoreConfidence,
   tierFor,
 } from './confidence';
+import { EXACT_KM, GENERAL_KM, NEARBY_KM, formatOffset, haversineKm } from './geo';
 
 /** Sort order on the results list: useful answers first, "no idea" last. */
 const STATUS_RANK: Record<CoverageStatus, number> = {
@@ -55,13 +56,66 @@ interface Candidate {
   record: Coverage;
   path: ResolutionPath;
   area: Locality | undefined;
+  distanceKm: number | null;
+}
+
+function isLiveCheck(source: SourceKind): boolean {
+  return source === 'probe' || source === 'official';
+}
+
+function isSpecificPlace(area: Locality): boolean {
+  return area.kind !== 'city' && area.kind !== 'suburb';
+}
+
+/** Nearest village / building / GPS / pincode with any coverage, within maxKm. */
+function nearestSpecific(
+  origin: Locality['center'],
+  records: Coverage[],
+  byId: Map<string, Locality>,
+  maxKm: number,
+  excludeId?: string,
+): { record: Coverage; area: Locality; distanceKm: number } | null {
+  let best: { record: Coverage; area: Locality; distanceKm: number } | null = null;
+  for (const record of records) {
+    const area = byId.get(record.areaId);
+    if (!area || area.id === excludeId || !isSpecificPlace(area)) continue;
+    const distanceKm = haversineKm(origin, area.center);
+    if (distanceKm > maxKm) continue;
+    const live = isLiveCheck(record.source);
+    const bestLive = best ? isLiveCheck(best.record.source) : false;
+    if (
+      !best ||
+      distanceKm < best.distanceKm - 0.005 ||
+      (Math.abs(distanceKm - best.distanceKm) <= 0.005 && live && !bestLive)
+    ) {
+      best = { record, area, distanceKm };
+    }
+  }
+  return best;
+}
+
+function nearestGeneral(
+  origin: Locality['center'],
+  records: Coverage[],
+  byId: Map<string, Locality>,
+): { record: Coverage; area: Locality; distanceKm: number } | null {
+  let best: { record: Coverage; area: Locality; distanceKm: number } | null = null;
+  for (const record of records) {
+    const area = byId.get(record.areaId);
+    if (!area || (area.kind !== 'suburb' && area.kind !== 'city')) continue;
+    const distanceKm = haversineKm(origin, area.center);
+    if (distanceKm > GENERAL_KM) continue;
+    if (!best || distanceKm < best.distanceKm) best = { record, area, distanceKm };
+  }
+  return best;
 }
 
 /**
- * Walk the ladder for one platform:
+ * Walk the ladder for one platform at a known locality:
  *   1. a record on this exact locality
- *   2. a record on a different locality sharing the pincode
- *   3. a record on the nearest ancestor (suburb → city)
+ *   2. a specific DB place with coverage within 2 km
+ *   3. a record on a different locality sharing the pincode
+ *   4. a record on the nearest ancestor (suburb → city)
  */
 export function pickRecord(
   target: Locality,
@@ -69,22 +123,95 @@ export function pickRecord(
   byId: Map<string, Locality>,
 ): Candidate | null {
   const exact = records.find((r) => r.areaId === target.id);
-  if (exact) return { record: exact, path: 'exact', area: target };
+  if (exact) return { record: exact, path: 'exact', area: target, distanceKm: 0 };
+
+  const nearby = nearestSpecific(target.center, records, byId, NEARBY_KM, target.id);
+  if (nearby) return { record: nearby.record, path: 'nearby', area: nearby.area, distanceKm: nearby.distanceKm };
 
   if (target.pincode) {
     const samePin = records.find((r) => {
       const area = byId.get(r.areaId);
       return area && area.id !== target.id && area.pincode === target.pincode;
     });
-    if (samePin) return { record: samePin, path: 'pincode', area: byId.get(samePin.areaId) };
+    if (samePin) {
+      const area = byId.get(samePin.areaId);
+      return {
+        record: samePin,
+        path: 'pincode',
+        area,
+        distanceKm: area ? haversineKm(target.center, area.center) : null,
+      };
+    }
   }
 
   for (const ancestor of ancestorChain(target.id, byId)) {
     const inherited = records.find((r) => r.areaId === ancestor.id);
-    if (inherited) return { record: inherited, path: 'city', area: ancestor };
+    if (inherited) {
+      return {
+        record: inherited,
+        path: 'city',
+        area: ancestor,
+        distanceKm: haversineKm(target.center, ancestor.center),
+      };
+    }
   }
 
   return null;
+}
+
+/**
+ * Answer from a GPS / geocoded point that may not be a saved locality.
+ *   1. specific DB place within 150 m → this place
+ *   2. specific DB place within 2 km → nearby real data
+ *   3. suburb/city record within 15 km → general area
+ */
+export function pickRecordFromPoint(
+  origin: Locality['center'],
+  records: Coverage[],
+  byId: Map<string, Locality>,
+): Candidate | null {
+  const here = nearestSpecific(origin, records, byId, EXACT_KM);
+  if (here) return { record: here.record, path: 'exact', area: here.area, distanceKm: here.distanceKm };
+
+  const nearby = nearestSpecific(origin, records, byId, NEARBY_KM);
+  if (nearby) return { record: nearby.record, path: 'nearby', area: nearby.area, distanceKm: nearby.distanceKm };
+
+  const general = nearestGeneral(origin, records, byId);
+  if (general) return { record: general.record, path: 'city', area: general.area, distanceKm: general.distanceKm };
+
+  return null;
+}
+
+export function queryLocality(origin: Locality['center'], name: string, city = '', state = ''): Locality {
+  const safeLat = origin.lat.toFixed(5);
+  const safeLng = origin.lng.toFixed(5);
+  return {
+    id: `at-${safeLat}-${safeLng}`,
+    name,
+    aliases: [],
+    kind: 'locality',
+    parentId: null,
+    pincode: null,
+    city: city || '',
+    state: state || '',
+    center: origin,
+  };
+}
+
+/** Title stays the searched name; breadcrumb is reverse-geocode context (road, Ravet, Pune). */
+export function describeAtPlace(
+  origin: Locality['center'],
+  geo: { name: string; city: string; state: string },
+  searchedName?: string,
+): { locality: Locality; breadcrumb: string[] } {
+  const name = searchedName?.trim() || geo.name || 'Pinned location';
+  const locality = queryLocality(origin, name, geo.city, geo.state);
+  const breadcrumb = [geo.name, geo.city, geo.state]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter((part, index, all) => all.findIndex((other) => other.toLowerCase() === part.toLowerCase()) === index)
+    .filter((part) => part.toLowerCase() !== name.toLowerCase());
+  return { locality, breadcrumb };
 }
 
 /** Reports about a given platform at a given area. */
@@ -141,11 +268,15 @@ function buildCaveat(
   pincode: string | null,
   disputed: boolean,
   stale: boolean,
+  distanceKm: number | null,
 ): string | null {
   if (path === 'none') return 'No coverage data for this area yet.';
   if (disputed) return 'Recent reports disagree with this status.';
+  if (path === 'nearby' && areaName) {
+    return `Real data checked ${formatOffset(distanceKm ?? 0)} away (${areaName})`;
+  }
   if (path === 'pincode') return `Recorded for ${areaName}, which shares pincode ${pincode}.`;
-  if (path === 'city') return `Estimated from ${areaName} data — not checked for this locality.`;
+  if (path === 'city') return `General area data (${areaName})`;
   if (stale) return 'Not checked recently — may be out of date.';
   return null;
 }
@@ -154,45 +285,35 @@ export interface ResolveOptions {
   now?: Date;
 }
 
-export function resolveOne(
+function unknownResult(platform: Platform): ResolvedCoverage {
+  return {
+    platform,
+    status: 'unknown',
+    confidence: 0,
+    tier: 'unconfirmed',
+    resolvedFrom: 'none',
+    resolvedAreaName: null,
+    resolvedAreaId: null,
+    distanceKm: null,
+    lastVerifiedAt: null,
+    source: null,
+    caveat: buildCaveat('none', null, null, false, false, null),
+  };
+}
+
+function finalize(
   platform: Platform,
-  target: Locality,
-  coverage: Coverage[],
-  byId: Map<string, Locality>,
+  candidate: Candidate,
   reports: UserReport[],
+  asked: Locality | null,
   now: Date,
 ): ResolvedCoverage {
-  const candidate = pickRecord(
-    target,
-    coverage.filter((c) => c.platformId === platform.id),
-    byId,
-  );
-
-  if (!candidate) {
-    return {
-      platform,
-      status: 'unknown',
-      confidence: 0,
-      tier: 'unconfirmed',
-      resolvedFrom: 'none',
-      resolvedAreaName: null,
-      lastVerifiedAt: null,
-      source: null,
-      caveat: buildCaveat('none', null, null, false, false),
-    };
-  }
-
-  const { record, path, area } = candidate;
-  const merged = mergeReports(record, reports, target.id);
-
-  /*
-   * Once someone reports from the locality itself we hold direct evidence
-   * about it, so the inheritance penalty no longer applies — the answer is
-   * about this place now, not borrowed from a neighbour.
-   */
-  const hasLocalEvidence = reportsFor(reports, platform.id, target.id).length > 0;
+  const askedAreaId = asked?.id ?? '';
+  const { record, path, area, distanceKm } = candidate;
+  const merged = mergeReports(record, reports, askedAreaId);
+  const hasLocalEvidence = asked ? reportsFor(reports, platform.id, asked.id).length > 0 : false;
   const effectivePath: ResolutionPath = hasLocalEvidence ? 'exact' : path;
-  const effectiveArea = hasLocalEvidence ? target : area;
+  const effectiveArea = hasLocalEvidence && asked ? asked : area;
 
   const confidence = scoreConfidence({
     source: merged.source,
@@ -213,6 +334,8 @@ export function resolveOne(
     tier: tierFor(confidence),
     resolvedFrom: effectivePath,
     resolvedAreaName: effectiveArea?.name ?? null,
+    resolvedAreaId: effectiveArea?.id ?? null,
+    distanceKm: effectivePath === 'exact' ? 0 : distanceKm,
     lastVerifiedAt: merged.lastVerifiedAt,
     source: merged.source,
     details: record.details,
@@ -222,8 +345,43 @@ export function resolveOne(
       effectiveArea?.pincode ?? null,
       disputed,
       stale,
+      distanceKm,
     ),
   };
+}
+
+export function resolveOne(
+  platform: Platform,
+  target: Locality,
+  coverage: Coverage[],
+  byId: Map<string, Locality>,
+  reports: UserReport[],
+  now: Date,
+): ResolvedCoverage {
+  const candidate = pickRecord(
+    target,
+    coverage.filter((c) => c.platformId === platform.id),
+    byId,
+  );
+  if (!candidate) return unknownResult(platform);
+  return finalize(platform, candidate, reports, target, now);
+}
+
+export function resolveOneFromPoint(
+  platform: Platform,
+  origin: Locality['center'],
+  coverage: Coverage[],
+  byId: Map<string, Locality>,
+  reports: UserReport[],
+  now: Date,
+): ResolvedCoverage {
+  const candidate = pickRecordFromPoint(
+    origin,
+    coverage.filter((c) => c.platformId === platform.id),
+    byId,
+  );
+  if (!candidate) return unknownResult(platform);
+  return finalize(platform, candidate, reports, null, now);
 }
 
 export function resolveArea(
@@ -238,6 +396,26 @@ export function resolveArea(
 
   return platforms
     .map((platform) => resolveOne(platform, target, coverage, byId, reports, now))
+    .sort(
+      (a, b) =>
+        STATUS_RANK[a.status] - STATUS_RANK[b.status] ||
+        b.confidence - a.confidence ||
+        a.platform.name.localeCompare(b.platform.name),
+    );
+}
+
+export function resolveAreaFromPoint(
+  origin: Locality['center'],
+  platforms: Platform[],
+  coverage: Coverage[],
+  byId: Map<string, Locality>,
+  reports: UserReport[],
+  options: ResolveOptions = {},
+): ResolvedCoverage[] {
+  const now = options.now ?? new Date();
+
+  return platforms
+    .map((platform) => resolveOneFromPoint(platform, origin, coverage, byId, reports, now))
     .sort(
       (a, b) =>
         STATUS_RANK[a.status] - STATUS_RANK[b.status] ||

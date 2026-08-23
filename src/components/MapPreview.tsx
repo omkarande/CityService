@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import L from 'leaflet';
 import { CircleMarker, MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../api/client';
 import type { MapPin } from '../api/types';
 import { coverageColor } from '../lib/format';
 import ClickToSearch from './ClickToSearch';
@@ -24,13 +22,9 @@ interface MapPreviewProps {
  */
 export default function MapPreview({ pins, highlights }: MapPreviewProps) {
   const navigate = useNavigate();
-  const [locating, setLocating] = useState(false);
 
-  async function goToNearest(lat: number, lng: number) {
-    setLocating(true);
-    const match = await api.nearest(lat, lng);
-    setLocating(false);
-    if (match) navigate(`/l/${match.locality.id}`, { state: { distanceKm: match.distanceKm } });
+  function goToNearest(lat: number, lng: number) {
+    navigate(`/at?lat=${lat}&lng=${lng}`);
   }
 
   return (
@@ -84,15 +78,6 @@ export default function MapPreview({ pins, highlights }: MapPreviewProps) {
         </span>
         <ExpandButton />
       </div>
-
-      {locating && (
-        <div className="pointer-events-none absolute inset-0 z-[950] flex items-center justify-center bg-surface/40 backdrop-blur-[1px]">
-          <span className="flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-label-bold text-primary shadow-md">
-            <Icon name="progress_activity" size={16} />
-            Finding nearest info…
-          </span>
-        </div>
-      )}
 
       <div className="absolute bottom-14 left-3 z-[1000] flex items-center gap-2 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-semibold text-on-surface-variant shadow-md">
         <span className="flex items-center gap-1">

@@ -185,17 +185,19 @@ That third rule is also the best demo of the mechanic: tapping "Yes, it works" a
 
 - **React 18 + Vite + TypeScript + Tailwind**, porting the tokens out of `DESIGN.md`
 - **Mobile-first.** Phone-width layout is the design target; on desktop it renders centred in a max-`420px` column
-- **No backend.** Seed JSON in `src/data/`, shaped as the exact API response
-- All data access goes through **one module**, `src/api/client.ts`, with a `MockAdapter`. Phase 2 swaps in `HttpAdapter` — no screen changes
+- Seed JSON in `src/data/`, shaped as the exact API response
+- All data access goes through **one module**, `src/api/client.ts`. Local Vite uses `mockAdapter`; production (and `VITE_USE_API=true`) uses `httpAdapter`
 - Resolution logic lives in `src/domain/resolve.ts`, pure functions, **portable to the server unchanged**
 - Saved locations + queued user reports in `localStorage`
 - Map: **Leaflet + OpenStreetMap** tiles (free, no API key, no billing setup)
 
-### Phase 2 — Backend
+### Phase 2 — Backend (this cut)
 
-**Recommendation: Supabase.** Postgres + PostGIS for coverage polygons, auth for report attribution, generated REST + JS client, generous free tier. For a solo build this removes weeks of plumbing. (Alternative if you'd rather own it: Node/Express + Postgres on Railway. Same schema either way — the choice isn't locked by anything in phase 1.)
+**Render Web Service (Node 20 + Express) + Render PostgreSQL.** `DATABASE_URL` and `PROBE_SECRET` are env vars. The public site stays login-free; only `/probe` write routes require the team password (httpOnly cookie after `POST /api/probe/login`, or `Authorization: Bearer`).
 
-Tables map 1:1 to the types above: `localities`, `platforms`, `coverage`, `user_reports`, plus `coverage_polygons(geometry)` when we get there. Resolution runs server-side and returns `AreaResult`.
+Tables map 1:1 to the types above: `categories`, `localities`, `platforms`, `coverage`. Resolution runs server-side (`src/domain/resolve.ts`) and returns `AreaResult`. User reports and PostGIS polygons are still out of scope.
+
+Local `npm run dev` can keep seed JSON, or set `VITE_USE_API=true` and run `npm run dev:server`.
 
 ### Phase 3 — Keeping it true
 
@@ -227,7 +229,8 @@ Brand-level lists, per `screen3.png` — the categories-only variant in `screen1
 ```
 src/
   api/
-    client.ts          // getArea, searchLocalities, submitReport
+    client.ts          // picks httpAdapter vs mockAdapter
+    httpAdapter.ts     // fetch /api/*
     mockAdapter.ts     // reads src/data, applies resolve()
     types.ts           // the interfaces in §2
   domain/
@@ -245,9 +248,12 @@ src/
     CategoryChips.tsx  MapView.tsx
   screens/
     Home.tsx  Results.tsx  PlatformDetail.tsx
-    Nearby.tsx  Saved.tsx  Account.tsx
+    Nearby.tsx  Saved.tsx  Account.tsx  Probe.tsx
   theme/
     tokens.ts          // ported from DESIGN.md
+server/
+  index.ts             // Express: public GET + team POST /api/probe/*
+  store.ts             // Postgres or in-memory
 ```
 
 ## 7. Frontend build order
@@ -270,7 +276,7 @@ Made now so the build isn't blocked; each is cheap to revisit:
 - **Pune as seed city** — matches the driving example (Shinde Vasti, Chikhali)
 - **Brand-level cards, categories as filters** — `screen3.png` over `screen1.png`
 - **Leaflet + OSM** for maps — no API key, no billing
-- **Supabase** as the phase-2 default — revisit before phase 2 actually starts
+- **Render Node + Postgres** for shared coverage (not Supabase, for this cut)
 
 ## 9. Open questions
 
@@ -294,3 +300,21 @@ Planning only, written up 2026-08-15 for team review — nothing here is impleme
 **Recommended path**, extending the pipeline note in §3: keep M1 (browser-automation probing) as the sparse ground-truth/calibration layer. Add M6 (real locality boundaries) + M5 (adaptive sampling) on top of M1/M2 for cheap, boundary-accurate citywide coverage — this is the direct answer to "cheapest method that's still automatable and accurate." Add M4 once a handful of quick-commerce hubs are calibrated against M1, making future Blinkit/Zepto/Instamart checks free (pure local geometry, no network call). Keep an eye out for M3 while reverse-engineering each platform for M1, but don't depend on it.
 
 **Before scaling M1 or M3 past occasional manual-triggered checks**: both call private endpoints built for these platforms' own frontends, not for outside use. Rate-limit deliberately, expect breakage without notice, and get a ToS/legal read before automating at real volume — the same caution §3's pipeline note already flags, worth repeating here since it applies to the whole family, not just the one method already in use.
+
+### Decisions locked 2026-08-23 (see `PROGRESS.md`)
+
+None of the eight first-wave platforms publish a public “do you deliver here?” API. Seller APIs, Swiggy MCP, and courier pincode APIs answer a different question. So coverage stays **M1**: a real browser session, set location in their UI, read the rendered result.
+
+**M4 two-ring model (Zepto / Blinkit / Instamart only).** Coverage is stores + a short ride, not a city switch. A flat 5–6 km “everywhere deliverable” disk over-claims on the outskirts.
+
+| Distance to nearest same-platform store | Inferred status | Source |
+|---|---|---|
+| 0–inner (~2.5–3 km) | `available`, `coverageStrength: wide` | `seed` until an M1 check exists |
+| inner–edge (~3–5 km) | `partial` / edge | live M1 check first |
+| beyond ~5 km | do not invent `unavailable` | another store may exist |
+
+Defaults: Zepto `innerKm` 2.5 / `edgeKm` 4.5; Blinkit and Instamart 3 / 5. Overlapping stores = union of disks. Does not apply to Swiggy food, Zomato, Amazon, or Flipkart scheduled.
+
+**Assisted recording, not a bot.** A `/probe` console (queue → copy place → open site → one-click write) is the intended speed-up. It is **not on branch `map-zoom` as of 2026-08-23**. Do not add unattended Playwright or a citywide Chrome-extension sweep. The agent cannot persist as an extension; a human (or an in-session browser) still sets the location.
+
+Full inventory of what is actually in the JSON on disk: `PROGRESS.md` → Session report — 2026-08-23.

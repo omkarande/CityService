@@ -1,0 +1,29 @@
+{
+  "_note": "Dark-store / hub points used by M4 two-ring inference (ARCHITECTURE.md §10). A locality inside innerKm is treated as available (source: seed, not probe). The 3–5 km ring is the edge we actually check. Beyond edgeKm we do not invent unavailable — we may not know every store yet. Coordinates are only written when we have a real geocode or a probe note we can place on a map. Do not treat this file as a complete store census.",
+  "_radiusDefaults": {
+    "zepto": { "innerKm": 2.5, "edgeKm": 4.5 },
+    "blinkit": { "innerKm": 3, "edgeKm": 5 },
+    "instamart": { "innerKm": 3, "edgeKm": 5 }
+  },
+  "hubs": [
+    {
+      "id": "zepto-midc-pimpri",
+      "platformId": "zepto",
+      "name": "MIDC",
+      "areaHint": "Pimpri MIDC / Old Mumbai-Pune Highway, Pimpri-Chinchwad",
+      "lat": 18.6320183,
+      "lng": 73.8032404,
+      "innerKm": 2.5,
+      "edgeKm": 4.5,
+      "source": "probe-note",
+      "geocode": {
+        "provider": "nominatim",
+        "query": "MIDC Pimpri",
+        "displayName": "MIDC Road | Morawadi Road | Pimpri - Chikhali Road, Ajmera, Pimpri-Chinchwad",
+        "fetchedAt": "2026-08-23",
+        "note": "The 2026-08-14 Zepto check named the nearest store 'MIDC / Old Mumbai-Pune Highway'. Nominatim has no Zepto door; this is the Pimpri MIDC Road point on that highway. Approximate, not a surveyed store entrance."
+      },
+      "firstSeenAt": "2026-08-14T00:00:00Z"
+    }
+  ]
+}

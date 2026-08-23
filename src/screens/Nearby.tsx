@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -9,6 +9,7 @@ import Icon from '../components/Icon';
 import MapZoomButtons from '../components/MapZoomButtons';
 import TopBar from '../components/TopBar';
 import { coverageColor } from '../lib/format';
+import { useVisibilityRefresh } from '../lib/useVisibilityRefresh';
 
 const PUNE_CENTER: [number, number] = [18.6, 73.85];
 const STREET_ZOOM = 16;
@@ -39,15 +40,16 @@ export default function Nearby() {
   const [pins, setPins] = useState<MapPin[]>([]);
   const [locating, setLocating] = useState(false);
 
-  useEffect(() => {
+  const loadPins = useCallback(() => {
     api.mapPins().then(setPins);
   }, []);
+  useEffect(loadPins, [loadPins]);
+  useVisibilityRefresh(loadPins);
 
-  async function goToNearest(lat: number, lng: number) {
+  function goToNearest(lat: number, lng: number) {
     setLocating(true);
-    const match = await api.nearest(lat, lng);
+    navigate(`/at?lat=${lat}&lng=${lng}`);
     setLocating(false);
-    if (match) navigate(`/l/${match.locality.id}`, { state: { distanceKm: match.distanceKm } });
   }
 
   return (

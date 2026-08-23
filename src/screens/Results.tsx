@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
 import type { AreaResult, CategoryId } from '../api/types';
 import CategoryChips from '../components/CategoryChips';
@@ -11,10 +11,18 @@ import { ListSkeleton } from '../components/Skeleton';
 import TopBar from '../components/TopBar';
 import { formatDistance } from '../lib/format';
 import { recentStore, savedStore } from '../lib/storage';
+import { useVisibilityRefresh } from '../lib/useVisibilityRefresh';
 
 export default function Results() {
   const { localityId = '' } = useParams();
+  const [params] = useSearchParams();
   const routeState = useLocation().state as { distanceKm?: number } | null;
+  const latRaw = params.get('lat');
+  const lngRaw = params.get('lng');
+  const atLat = latRaw != null ? Number(latRaw) : NaN;
+  const atLng = lngRaw != null ? Number(lngRaw) : NaN;
+  const atQuery = params.get('q') ?? '';
+  const isAt = !localityId && Number.isFinite(atLat) && Number.isFinite(atLng);
 
   const [area, setArea] = useState<AreaResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,24 +32,28 @@ export default function Results() {
   const categories = api.categories();
   const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
-  useEffect(() => {
+  const load = useCallback((soft = false) => {
     let cancelled = false;
-    setLoading(true);
-
-    api.getArea(localityId).then((result) => {
+    if (!soft) setLoading(true);
+    const request = isAt ? api.getAt(atLat, atLng, atQuery || undefined) : api.getArea(localityId);
+    request.then((result) => {
       if (cancelled) return;
       setArea(result);
       setLoading(false);
-      if (result) {
+      if (result && !result.locality.id.startsWith('at-')) {
         recentStore.push(result.locality.id);
         setSaved(savedStore.has(result.locality.id));
       }
     });
-
     return () => {
       cancelled = true;
     };
-  }, [localityId]);
+  }, [isAt, atLat, atLng, atQuery, localityId]);
+
+  useEffect(() => load(false), [load]);
+  useVisibilityRefresh(() => {
+    load(true);
+  });
 
   const visible = useMemo(() => {
     if (!area) return [];
@@ -67,7 +79,7 @@ export default function Results() {
           <EmptyState
             icon="wrong_location"
             title="We don't know this place yet"
-            body="Only Pune localities are seeded right now. Try searching for another area."
+            body="Try current location, or search a nearby area."
           />
         </div>
       </>
@@ -80,6 +92,7 @@ export default function Results() {
         back
         backLabel="Back"
         action={
+          isAt ? undefined : (
           <button
             onClick={toggleSave}
             aria-label={saved ? 'Remove from saved' : 'Save this locality'}
@@ -88,6 +101,7 @@ export default function Results() {
           >
             <Icon name="bookmark" fill={saved} />
           </button>
+          )
         }
       />
 
@@ -129,14 +143,19 @@ export default function Results() {
           <ListSkeleton />
         ) : (
           <div className="flex flex-col gap-md">
-            {visible.map((result) => (
-              <PlatformCard
-                key={result.platform.id}
-                result={result}
-                localityId={localityId}
-                categoryLabel={categoryById.get(result.platform.categoryId)?.label ?? ''}
-              />
-            ))}
+            {visible.map((result) => {
+              const to = isAt
+                ? `/at/${result.platform.id}?${params.toString()}`
+                : `/l/${localityId}/${result.platform.id}`;
+              return (
+                <PlatformCard
+                  key={result.platform.id}
+                  result={result}
+                  to={to}
+                  categoryLabel={categoryById.get(result.platform.categoryId)?.label ?? ''}
+                />
+              );
+            })}
           </div>
         )}
       </div>

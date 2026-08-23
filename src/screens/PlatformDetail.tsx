@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
 import type { CategoryId, CoverageStatus, Locality, ResolvedCoverage, SourceKind, Verdict } from '../api/types';
 import ConfidenceMeter from '../components/ConfidenceMeter';
@@ -9,6 +9,7 @@ import LogoTile from '../components/LogoTile';
 import StatusBadge from '../components/StatusBadge';
 import TopBar from '../components/TopBar';
 import { COVERAGE_LABEL, TIER_LABEL, formatEta, relativeTime } from '../lib/format';
+import { useVisibilityRefresh } from '../lib/useVisibilityRefresh';
 
 /** What the platform is for, so the headline reads like a sentence. */
 const ACTION_BY_CATEGORY: Record<CategoryId, string> = {
@@ -33,9 +34,10 @@ const SOURCE_LABEL: Record<SourceKind, string> = {
 
 const PATH_EXPLANATION: Record<ResolvedCoverage['resolvedFrom'], string> = {
   exact: 'Recorded for this exact locality.',
+  nearby: 'A live check within 2 km of this place.',
   pincode: 'Borrowed from a neighbouring area on the same pincode.',
   polygon: 'Derived from the coverage area this location falls inside.',
-  city: 'Inferred from wider city data, not checked for this locality.',
+  city: 'General area data, not a live check at this pin.',
   none: 'Nobody has recorded anything for this area yet.',
 };
 
@@ -62,6 +64,13 @@ const HERO_TONE: Record<CoverageStatus, { wrap: string; icon: string; symbol: st
 
 export default function PlatformDetail() {
   const { localityId = '', platformId = '' } = useParams();
+  const [params] = useSearchParams();
+  const latRaw = params.get('lat');
+  const lngRaw = params.get('lng');
+  const atLat = latRaw != null ? Number(latRaw) : NaN;
+  const atLng = lngRaw != null ? Number(lngRaw) : NaN;
+  const atQuery = params.get('q') ?? '';
+  const isAt = !localityId && Number.isFinite(atLat) && Number.isFinite(atLng);
 
   const [data, setData] = useState<{ locality: Locality; breadcrumb: string[]; resolved: ResolvedCoverage } | null>(
     null,
@@ -72,20 +81,33 @@ export default function PlatformDetail() {
   const [justReported, setJustReported] = useState(false);
 
   const load = useCallback(async () => {
-    const result = await api.getPlatformAt(localityId, platformId);
-    setData(result);
-    setMyVerdict(api.myReport(platformId, localityId)?.verdict ?? null);
+    if (isAt) {
+      const area = await api.getAt(atLat, atLng, atQuery || undefined);
+      const resolved = area.results.find((r) => r.platform.id === platformId);
+      setData(resolved ? { locality: area.locality, breadcrumb: area.breadcrumb, resolved } : null);
+      setMyVerdict(api.myReport(platformId, area.locality.id)?.verdict ?? null);
+    } else {
+      const result = await api.getPlatformAt(localityId, platformId);
+      setData(result);
+      setMyVerdict(api.myReport(platformId, localityId)?.verdict ?? null);
+    }
     setLoading(false);
-  }, [localityId, platformId]);
+  }, [isAt, atLat, atLng, atQuery, localityId, platformId]);
 
   useEffect(() => {
     setLoading(true);
     load();
   }, [load]);
+  useVisibilityRefresh(load);
 
   async function report(verdict: Verdict) {
     setSubmitting(true);
-    await api.submitReport({ platformId, areaId: localityId, verdict, atLocation: false });
+    await api.submitReport({
+      platformId,
+      areaId: data?.locality.id || localityId,
+      verdict,
+      atLocation: false,
+    });
     await load();
     setSubmitting(false);
     setJustReported(true);
@@ -111,8 +133,8 @@ export default function PlatformDetail() {
     );
   }
 
-  const { locality, resolved } = data;
-  const { platform, status, tier, details, caveat, source, lastVerifiedAt, resolvedFrom, resolvedAreaName } = resolved;
+  const { locality, breadcrumb, resolved } = data;
+  const { platform, status, tier, details, caveat, source, lastVerifiedAt, resolvedFrom } = resolved;
   const tone = HERO_TONE[status];
   const copy = headline(status, platform.name, platform.categoryId);
   const eta = formatEta(details?.etaMinutes);
@@ -124,6 +146,7 @@ export default function PlatformDetail() {
       <div className="animate-fade-up flex flex-col gap-md px-margin-mobile pb-lg pt-md">
         <p className="text-body-md text-on-surface-variant">
           <Icon name="location_on" size={14} className="align-text-bottom" /> {locality.name}
+          {breadcrumb.length > 0 && ` · ${breadcrumb.join(' · ')}`}
           {locality.pincode && ` · ${locality.pincode}`}
         </p>
 
@@ -171,12 +194,7 @@ export default function PlatformDetail() {
           <div className="border-t border-outline-variant/40">
             <Row icon="schedule" label="Last updated" value={relativeTime(lastVerifiedAt)} />
             <Row icon="groups" label="Source" value={source ? SOURCE_LABEL[source] : 'No data'} />
-            <Row
-              icon="hub"
-              label="How we know"
-              value={PATH_EXPLANATION[resolvedFrom]}
-              sub={resolvedAreaName && resolvedFrom !== 'exact' ? `From: ${resolvedAreaName}` : undefined}
-            />
+            <Row icon="hub" label="How we know" value={PATH_EXPLANATION[resolvedFrom]} />
             <div className="flex items-center justify-between px-md py-3">
               <span className="flex items-center gap-3">
                 <Icon name="verified" size={20} className="text-outline" />

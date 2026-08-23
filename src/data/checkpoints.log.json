@@ -1,0 +1,58 @@
+[
+  {
+    "pincode": "411018",
+    "platformId": "swiggy",
+    "status": "available",
+    "checkedAt": "2026-08-14T00:00:00Z",
+    "source": "probe"
+  },
+  {
+    "pincode": "411018",
+    "platformId": "instamart",
+    "status": "available",
+    "checkedAt": "2026-08-14T00:00:00Z",
+    "source": "probe"
+  },
+  {
+    "pincode": "411018",
+    "platformId": "zepto",
+    "status": "available",
+    "checkedAt": "2026-08-14T00:00:00Z",
+    "source": "probe"
+  },
+  {
+    "pincode": "411018",
+    "platformId": "blinkit",
+    "status": "available",
+    "checkedAt": "2026-08-14T00:00:00Z",
+    "source": "probe"
+  },
+  {
+    "pincode": "411018",
+    "platformId": "zomato",
+    "status": "available",
+    "checkedAt": "2026-08-14T00:00:00Z",
+    "source": "probe"
+  },
+  {
+    "pincode": "411018",
+    "platformId": "amazon",
+    "status": "available",
+    "checkedAt": "2026-08-14T00:00:00Z",
+    "source": "probe"
+  },
+  {
+    "pincode": "411018",
+    "platformId": "flipkart",
+    "status": "available",
+    "checkedAt": "2026-08-14T00:00:00Z",
+    "source": "probe"
+  },
+  {
+    "pincode": "411018",
+    "platformId": "bigbasket",
+    "status": "available",
+    "checkedAt": "2026-08-14T00:00:00Z",
+    "source": "probe"
+  }
+]

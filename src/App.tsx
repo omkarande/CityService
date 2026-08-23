@@ -8,16 +8,20 @@ import PlatformDetail from './screens/PlatformDetail';
 import Nearby from './screens/Nearby';
 import Saved from './screens/Saved';
 import Account from './screens/Account';
+import Probe from './screens/Probe';
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/probe" element={<Probe />} />
       <Route element={<AppShell />}>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
         <Route path="/city/:cityId" element={<City />} />
-        <Route path="/l/:localityId" element={<Results />} />
-        <Route path="/l/:localityId/:platformId" element={<PlatformDetail />} />
+      <Route path="/at" element={<Results />} />
+      <Route path="/at/:platformId" element={<PlatformDetail />} />
+      <Route path="/l/:localityId" element={<Results />} />
+      <Route path="/l/:localityId/:platformId" element={<PlatformDetail />} />
         <Route path="/nearby" element={<Nearby />} />
         <Route path="/saved" element={<Saved />} />
         <Route path="/account" element={<Account />} />

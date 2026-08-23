@@ -22,7 +22,7 @@ yarn-error.log*
 !.vscode/extensions.json
 Thumbs.db
 
-# Env files (none in use yet, but don't let one slip in later)
+# Env files (copy from .env.example — never commit secrets)
 .env
 .env.local
 .env.*.local
