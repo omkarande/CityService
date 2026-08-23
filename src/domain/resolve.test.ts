@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Coverage, Locality, Platform, UserReport } from '../api/types';
-import { ancestorChain, mergeReports, resolveArea, resolveOne } from './resolve';
+import { ancestorChain, describeAtPlace, mergeReports, resolveArea, resolveOne, resolveOneFromPoint } from './resolve';
 import localitiesJson from '../data/localities.pune.json';
 import platformsJson from '../data/platforms.json';
 import coverageJson from '../data/coverage.seed.json';
@@ -24,7 +24,7 @@ const CITY: Locality = {
 
 const SUBURB: Locality = { ...CITY, id: 'suburb', name: 'Suburb', kind: 'suburb', parentId: 'city', pincode: '111111' };
 const TARGET: Locality = { ...CITY, id: 'target', name: 'Target', kind: 'village', parentId: 'suburb', pincode: '111111' };
-const SIBLING: Locality = { ...CITY, id: 'sibling', name: 'Sibling', kind: 'village', parentId: 'suburb', pincode: '111111' };
+const SIBLING: Locality = { ...CITY, id: 'sibling', name: 'Sibling', kind: 'village', parentId: 'suburb', pincode: '111111', center: { lat: 0.05, lng: 0 } };
 
 const BY_ID = new Map([CITY, SUBURB, TARGET, SIBLING].map((l) => [l.id, l]));
 
@@ -91,7 +91,7 @@ describe('the fallback ladder', () => {
     const result = resolve([record('city')]);
     expect(result.resolvedFrom).toBe('city');
     expect(result.resolvedAreaName).toBe('Metropolis');
-    expect(result.caveat).toContain('Estimated from');
+    expect(result.caveat).toContain('General area data');
   });
 
   it('prefers a nearer ancestor over a further one', () => {
@@ -113,6 +113,78 @@ describe('the fallback ladder', () => {
     const city = resolve([record('city')]).confidence;
     expect(exact).toBeGreaterThan(pincode);
     expect(pincode).toBeGreaterThan(city);
+  });
+});
+
+describe('nearby live checks', () => {
+  const vicky: Locality = {
+    ...TARGET,
+    id: 'vicky',
+    name: 'Vicky Properties',
+    kind: 'locality',
+    parentId: null,
+    pincode: null,
+    center: { lat: 0.0018, lng: 0 },
+  };
+  const far: Locality = { ...vicky, id: 'far', name: 'Far Building', center: { lat: 0.022, lng: 0 } };
+  const byId = new Map([...BY_ID, [vicky.id, vicky], [far.id, far]]);
+
+  it('uses a probe within 2 km and names the distance', () => {
+    const result = resolveOne(PLATFORM, TARGET, [record('vicky', { source: 'probe' })], byId, [], NOW);
+    expect(result.resolvedFrom).toBe('nearby');
+    expect(result.caveat).toMatch(/Real data checked \d+ m away \(Vicky Properties\)/);
+  });
+
+  it('ignores a probe beyond 2 km and uses general area instead', () => {
+    const result = resolveOne(
+      PLATFORM,
+      TARGET,
+      [record('far', { source: 'probe' }), record('city')],
+      byId,
+      [],
+      NOW,
+    );
+    expect(result.resolvedFrom).toBe('city');
+    expect(result.caveat).toContain('General area data');
+  });
+
+  it('from a GPS point, a 200 m probe beats suburb seed', () => {
+    const result = resolveOneFromPoint(
+      PLATFORM,
+      { lat: 0, lng: 0 },
+      [record('vicky', { source: 'probe' }), record('city')],
+      byId,
+      [],
+      NOW,
+    );
+    expect(result.resolvedFrom).toBe('nearby');
+    expect(result.resolvedAreaName).toBe('Vicky Properties');
+  });
+
+  it('from a GPS point, a nearby seeded building counts within 2 km', () => {
+    const result = resolveOneFromPoint(
+      PLATFORM,
+      { lat: 0, lng: 0 },
+      [record('vicky', { source: 'seed' }), record('city')],
+      byId,
+      [],
+      NOW,
+    );
+    expect(result.resolvedFrom).toBe('nearby');
+    expect(result.resolvedAreaName).toBe('Vicky Properties');
+    expect(result.caveat).toMatch(/Real data checked/);
+  });
+});
+
+describe('describeAtPlace', () => {
+  it('keeps the searched name and puts reverse-geocode bits in the breadcrumb', () => {
+    const { locality, breadcrumb } = describeAtPlace(
+      { lat: 18.65, lng: 73.74 },
+      { name: 'Shinde Vasti', city: 'Ravet', state: 'Maharashtra' },
+      'Vicky Properties',
+    );
+    expect(locality.name).toBe('Vicky Properties');
+    expect(breadcrumb).toEqual(['Shinde Vasti', 'Ravet', 'Maharashtra']);
   });
 });
 

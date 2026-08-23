@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Icon from '../components/Icon';
 import TopBar from '../components/TopBar';
 import { reportStore, reporterId } from '../lib/storage';
@@ -21,6 +22,24 @@ export default function Account() {
             <p className="truncate text-body-md text-on-surface-variant">{id}</p>
           </div>
         </div>
+
+        {!import.meta.env.PROD && (
+          <Link
+            to="/probe"
+            className="flex items-center gap-md rounded-xl border border-outline-variant/50 bg-surface-container-lowest p-md shadow-soft transition-colors hover:bg-surface-container-low active:scale-[0.99]"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-fixed text-primary">
+              <Icon name="edit_note" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-body-lg font-bold text-on-surface">Record coverage</p>
+              <p className="text-body-md text-on-surface-variant">
+                Local only. On the deployed site the team uses the /probe URL.
+              </p>
+            </div>
+            <Icon name="chevron_right" className="text-outline" size={20} />
+          </Link>
+        )}
 
         <div className="rounded-xl border border-outline-variant/50 bg-surface-container-lowest p-md shadow-soft">
           <p className="text-body-lg font-bold text-on-surface">Your reports</p>

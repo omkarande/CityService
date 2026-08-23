@@ -1,30 +1,55 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet';
+import { CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { api } from '../api/client';
 import type { MapPin } from '../api/types';
 import ClickToSearch from '../components/ClickToSearch';
 import Icon from '../components/Icon';
+import MapZoomButtons from '../components/MapZoomButtons';
 import TopBar from '../components/TopBar';
 import { coverageColor } from '../lib/format';
+import { useVisibilityRefresh } from '../lib/useVisibilityRefresh';
 
 const PUNE_CENTER: [number, number] = [18.6, 73.85];
+const STREET_ZOOM = 16;
+const CLUSTER_MAX_ZOOM = 15;
+const OSM_MAX_ZOOM = 19;
+
+function FitToPins({ pins }: { pins: MapPin[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (pins.length === 0) return;
+    if (pins.length === 1) {
+      const { lat, lng } = pins[0].locality.center;
+      map.setView([lat, lng], STREET_ZOOM);
+      return;
+    }
+    map.fitBounds(
+      pins.map((p) => [p.locality.center.lat, p.locality.center.lng] as [number, number]),
+      { padding: [40, 40], maxZoom: CLUSTER_MAX_ZOOM },
+    );
+  }, [pins, map]);
+
+  return null;
+}
 
 export default function Nearby() {
   const navigate = useNavigate();
   const [pins, setPins] = useState<MapPin[]>([]);
   const [locating, setLocating] = useState(false);
 
-  useEffect(() => {
+  const loadPins = useCallback(() => {
     api.mapPins().then(setPins);
   }, []);
+  useEffect(loadPins, [loadPins]);
+  useVisibilityRefresh(loadPins);
 
-  async function goToNearest(lat: number, lng: number) {
+  function goToNearest(lat: number, lng: number) {
     setLocating(true);
-    const match = await api.nearest(lat, lng);
+    navigate(`/at?lat=${lat}&lng=${lng}`);
     setLocating(false);
-    if (match) navigate(`/l/${match.locality.id}`, { state: { distanceKm: match.distanceKm } });
   }
 
   return (
@@ -32,18 +57,24 @@ export default function Nearby() {
       <TopBar title="Nearby" />
 
       <div className="flex flex-col gap-md pb-lg">
-        <div className="relative h-72 w-full overflow-hidden border-y border-outline-variant/40">
+        <div className="relative h-[28rem] w-full overflow-hidden border-y border-outline-variant/40">
           <MapContainer
             center={PUNE_CENTER}
-            zoom={11}
-            scrollWheelZoom={false}
+            zoom={STREET_ZOOM}
+            minZoom={11}
+            maxZoom={OSM_MAX_ZOOM}
+            scrollWheelZoom
+            zoomControl={false}
             style={{ height: '100%', width: '100%' }}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={OSM_MAX_ZOOM}
             />
+            <FitToPins pins={pins} />
             <ClickToSearch onPick={goToNearest} />
+            <MapZoomButtons />
 
             {pins.map((pin) => {
               const ratio = pin.total === 0 ? 0 : pin.available / pin.total;
@@ -59,16 +90,16 @@ export default function Nearby() {
                     fillColor: coverageColor(ratio),
                     fillOpacity: 0.9,
                   }}
+                  eventHandlers={{
+                    click: (e) => {
+                      e.originalEvent.stopPropagation();
+                      navigate(`/l/${pin.locality.id}`);
+                    },
+                  }}
                 >
-                  <Popup>
-                    <span className="block font-bold">{pin.locality.name}</span>
-                    <span className="block">
-                      {pin.available} of {pin.total} services available
-                    </span>
-                    <button className="mt-1 underline" onClick={() => navigate(`/l/${pin.locality.id}`)}>
-                      See details
-                    </button>
-                  </Popup>
+                  <Tooltip direction="top" offset={[0, -10]} opacity={1}>
+                    {pin.locality.name}
+                  </Tooltip>
                 </CircleMarker>
               );
             })}
@@ -87,7 +118,7 @@ export default function Nearby() {
         <div className="flex flex-col gap-sm px-margin-mobile">
           <p className="flex items-start gap-1.5 text-label-sm text-on-surface-variant">
             <Icon name="touch_app" size={14} className="mt-0.5 shrink-0 text-outline" />
-            Tap any pin for details, or tap empty map to jump to the nearest locality we track.
+            Pinch or use +/− to zoom, tap a pin to open that locality, or tap empty map for the nearest we track.
           </p>
 
           <div className="flex items-center gap-4 text-label-sm text-on-surface-variant">

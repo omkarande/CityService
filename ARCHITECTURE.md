@@ -185,17 +185,19 @@ That third rule is also the best demo of the mechanic: tapping "Yes, it works" a
 
 - **React 18 + Vite + TypeScript + Tailwind**, porting the tokens out of `DESIGN.md`
 - **Mobile-first.** Phone-width layout is the design target; on desktop it renders centred in a max-`420px` column
-- **No backend.** Seed JSON in `src/data/`, shaped as the exact API response
-- All data access goes through **one module**, `src/api/client.ts`, with a `MockAdapter`. Phase 2 swaps in `HttpAdapter` — no screen changes
+- Seed JSON in `src/data/`, shaped as the exact API response
+- All data access goes through **one module**, `src/api/client.ts`. Local Vite uses `mockAdapter`; production (and `VITE_USE_API=true`) uses `httpAdapter`
 - Resolution logic lives in `src/domain/resolve.ts`, pure functions, **portable to the server unchanged**
 - Saved locations + queued user reports in `localStorage`
 - Map: **Leaflet + OpenStreetMap** tiles (free, no API key, no billing setup)
 
-### Phase 2 — Backend
+### Phase 2 — Backend (this cut)
 
-**Recommendation: Supabase.** Postgres + PostGIS for coverage polygons, auth for report attribution, generated REST + JS client, generous free tier. For a solo build this removes weeks of plumbing. (Alternative if you'd rather own it: Node/Express + Postgres on Railway. Same schema either way — the choice isn't locked by anything in phase 1.)
+**Render Web Service (Node 20 + Express) + Render PostgreSQL.** `DATABASE_URL` and `PROBE_SECRET` are env vars. The public site stays login-free; only `/probe` write routes require the team password (httpOnly cookie after `POST /api/probe/login`, or `Authorization: Bearer`).
 
-Tables map 1:1 to the types above: `localities`, `platforms`, `coverage`, `user_reports`, plus `coverage_polygons(geometry)` when we get there. Resolution runs server-side and returns `AreaResult`.
+Tables map 1:1 to the types above: `categories`, `localities`, `platforms`, `coverage`. Resolution runs server-side (`src/domain/resolve.ts`) and returns `AreaResult`. User reports and PostGIS polygons are still out of scope.
+
+Local `npm run dev` can keep seed JSON, or set `VITE_USE_API=true` and run `npm run dev:server`.
 
 ### Phase 3 — Keeping it true
 
@@ -227,7 +229,8 @@ Brand-level lists, per `screen3.png` — the categories-only variant in `screen1
 ```
 src/
   api/
-    client.ts          // getArea, searchLocalities, submitReport
+    client.ts          // picks httpAdapter vs mockAdapter
+    httpAdapter.ts     // fetch /api/*
     mockAdapter.ts     // reads src/data, applies resolve()
     types.ts           // the interfaces in §2
   domain/
@@ -245,9 +248,12 @@ src/
     CategoryChips.tsx  MapView.tsx
   screens/
     Home.tsx  Results.tsx  PlatformDetail.tsx
-    Nearby.tsx  Saved.tsx  Account.tsx
+    Nearby.tsx  Saved.tsx  Account.tsx  Probe.tsx
   theme/
     tokens.ts          // ported from DESIGN.md
+server/
+  index.ts             // Express: public GET + team POST /api/probe/*
+  store.ts             // Postgres or in-memory
 ```
 
 ## 7. Frontend build order
@@ -270,7 +276,7 @@ Made now so the build isn't blocked; each is cheap to revisit:
 - **Pune as seed city** — matches the driving example (Shinde Vasti, Chikhali)
 - **Brand-level cards, categories as filters** — `screen3.png` over `screen1.png`
 - **Leaflet + OSM** for maps — no API key, no billing
-- **Supabase** as the phase-2 default — revisit before phase 2 actually starts
+- **Render Node + Postgres** for shared coverage (not Supabase, for this cut)
 
 ## 9. Open questions
 
@@ -290,6 +296,10 @@ Planning only, written up 2026-08-15 for team review — nothing here is impleme
 | M4 | Geocode dark-store/hub addresses once, compute coverage as radius geometry | Near zero after setup | Full after a one-time calibration against M1 | Approximate — real coverage isn't a perfect circle | Scaling quick-commerce coverage checks for free |
 | M5 | Adaptive/binary-search sampling — coarse grid first, then bisect only where neighboring points disagree | Cuts M1/M2 query volume roughly 70-90% | Full — it's an algorithm layered on M1 or M2 | High exactly at the served/not-served boundary, which is what matters | The sampling strategy to run on top of M1 or M2, not a data source itself |
 | M6 | Sample real locality/ward polygons (OSM Overpass API, municipal GIS portals) instead of raw coordinates | Free, one-time GIS effort | Full — boundaries rarely change | High representativeness, matches how localities are named in the app | Turning raw sample points into locality-level results |
+
+**Recommended path**, extending the pipeline note in §3: keep M1 (browser-automation probing) as the sparse ground-truth/calibration layer. Add M6 (real locality boundaries) + M5 (adaptive sampling) on top of M1/M2 for cheap, boundary-accurate citywide coverage — this is the direct answer to "cheapest method that's still automatable and accurate." Add M4 once a handful of quick-commerce hubs are calibrated against M1, making future Blinkit/Zepto/Instamart checks free (pure local geometry, no network call). Keep an eye out for M3 while reverse-engineering each platform for M1, but don't depend on it.
+
+**Before scaling M1 or M3 past occasional manual-triggered checks**: both call private endpoints built for these platforms' own frontends, not for outside use. Rate-limit deliberately, expect breakage without notice, and get a ToS/legal read before automating at real volume — the same caution §3's pipeline note already flags, worth repeating here since it applies to the whole family, not just the one method already in use.
 
 **Recommended path**, extending the pipeline note in §3: keep M1 (browser-automation probing) as the sparse ground-truth/calibration layer. Add M6 (real locality boundaries) + M5 (adaptive sampling) on top of M1/M2 for cheap, boundary-accurate citywide coverage — this is the direct answer to "cheapest method that's still automatable and accurate." Add M4 once a handful of quick-commerce hubs are calibrated against M1, making future Blinkit/Zepto/Instamart checks free (pure local geometry, no network call). Keep an eye out for M3 while reverse-engineering each platform for M1, but don't depend on it.
 
@@ -331,11 +341,12 @@ Coverage is “stores + a short bike ride,” not a city switch. A flat 5–6 km
 
 Defaults: Zepto `innerKm: 2.5` / `edgeKm: 4.5`; Blinkit and Instamart `3` / `5`. After a few live points around the same hub, replace those defaults with that store’s measured radius. Overlapping stores are a union of disks. This model does **not** apply to Swiggy food, Zomato, Amazon, or Flipkart scheduled.
 
-**Assisted probe loop (built 2026-08-23)**
+**Assisted probe loop**
 
-1. `node scripts/pick-next-check.mjs` (or the `/probe` console) — M5, hub-edge biased for q-comm (skip the inner disk; check the rim).
+1. `/probe` (password-gated in production via `PROBE_SECRET`) or `node scripts/pick-next-check.mjs` — M5, hub-edge biased for q-comm (skip the inner disk; check the rim).
 2. Open the platform site, set the copied place string in **their** location picker.
-3. One-click record → `checkpoints.log.json` + a `probe` row in `coverage.seed.json` + optional hub.
+3. Record in `/probe` → Postgres (or local Vite `probeStore` + JSON when `VITE_USE_API` is unset). Optional hub name into `src/data/hubs.pune-pcmc.json`.
 4. `node scripts/infer-hubs.mjs` writes `source: seed` disks. Never overwrites a `probe`. Never marks geometry as `verified`.
 
-Dev-only UI: `npm run dev` → [http://localhost:5173/probe](http://localhost:5173/probe). CLI aliases: `npm run pipeline:pick` / `pipeline:record` / `pipeline:infer`. Do not add unattended Playwright against platform checkers.
+Team UI: [http://localhost:5173/probe](http://localhost:5173/probe) locally, or `/probe` on Render. CLI aliases: `npm run pipeline:pick` / `pipeline:record` / `pipeline:infer`. Do not add unattended Playwright against platform checkers.
+

@@ -5,13 +5,15 @@
  * In phase 2, reports move to the server and this keeps only the offline queue.
  */
 
-import type { UserReport } from '../api/types';
+import type { Coverage, Locality, UserReport } from '../api/types';
 
 const KEYS = {
   reports: 'cityservice.reports.v1',
   saved: 'cityservice.saved.v1',
   recent: 'cityservice.recent.v1',
   reporterId: 'cityservice.reporterId.v1',
+  probes: 'cityservice.probes.v1',
+  gpsPlaces: 'cityservice.gpsPlaces.v1',
 } as const;
 
 function read<T>(key: string, fallback: T): T {
@@ -90,3 +92,41 @@ export const recentStore = {
     return next;
   },
 };
+
+/** Live coverage checks recorded in this browser (and on disk when `npm run dev` is up). */
+export const probeStore = {
+  all: (): Coverage[] => read<Coverage[]>(KEYS.probes, []),
+
+  upsert(record: Coverage): Coverage[] {
+    const next = probeStore
+      .all()
+      .filter((r) => !(r.platformId === record.platformId && r.areaId === record.areaId));
+    next.push(record);
+    write(KEYS.probes, next);
+    return next;
+  },
+
+  clear(): void {
+    write(KEYS.probes, []);
+  },
+};
+
+export const gpsPlaceStore = {
+  all: (): Locality[] => read<Locality[]>(KEYS.gpsPlaces, []),
+
+  upsert(place: Locality): Locality[] {
+    const next = gpsPlaceStore.all().filter((l) => l.id !== place.id);
+    next.push(place);
+    write(KEYS.gpsPlaces, next);
+    return next;
+  },
+};
+
+/** Seed JSON plus this-device probe overlay — overlay always wins for the same platform+area. */
+export function mergeCoverage(seed: Coverage[]): Coverage[] {
+  const byKey = new Map(seed.map((r) => [`${r.platformId}|${r.areaId}`, r] as const));
+  for (const record of probeStore.all()) {
+    byKey.set(`${record.platformId}|${record.areaId}`, record);
+  }
+  return [...byKey.values()];
+}

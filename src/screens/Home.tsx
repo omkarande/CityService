@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import type { MapPin } from '../api/types';
@@ -6,6 +6,7 @@ import CityGrid from '../components/CityGrid';
 import Icon from '../components/Icon';
 import SearchBar from '../components/SearchBar';
 import { getCurrentCoords, LocationPermissionError } from '../lib/location';
+import { useVisibilityRefresh } from '../lib/useVisibilityRefresh';
 
 type LocateState = { status: 'idle' } | { status: 'locating' } | { status: 'error'; message: string };
 
@@ -15,21 +16,18 @@ export default function Home() {
   const [pins, setPins] = useState<MapPin[]>([]);
   const [locate, setLocate] = useState<LocateState>({ status: 'idle' });
 
-  useEffect(() => {
+  const loadPins = useCallback(() => {
     api.mapPins().then(setPins);
   }, []);
+  useEffect(loadPins, [loadPins]);
+  useVisibilityRefresh(loadPins);
 
   async function useMyLocation() {
     setLocate({ status: 'locating' });
     try {
       const coords = await getCurrentCoords();
-      const match = await api.nearest(coords.latitude, coords.longitude);
-      if (!match) {
-        setLocate({ status: 'error', message: 'No seeded locality near you yet — try searching instead.' });
-        return;
-      }
       setLocate({ status: 'idle' });
-      navigate(`/l/${match.locality.id}`, { state: { distanceKm: match.distanceKm } });
+      navigate(`/at?lat=${coords.latitude}&lng=${coords.longitude}`);
     } catch (err) {
       const message =
         err instanceof LocationPermissionError
