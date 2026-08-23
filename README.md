@@ -69,8 +69,8 @@ Use a **Web Service** (not a Static Site) plus **PostgreSQL**. Static hosts cann
 
 1. Create a PostgreSQL instance and copy `DATABASE_URL`.
 2. Create a Web Service from this repo, root directory = repo root, Node 20.
-3. **Build:** `npm ci --include=dev && npm run build`  
-   (`--include=dev` is required so Vite/TypeScript are present even when `NODE_ENV=production`.)
+3. **Build:** `npm install --include=dev && npm run build`  
+   (`--include=dev` is required so Vite/TypeScript are present even when `NODE_ENV=production`. Use `npm install`, not `npm ci` — the lockfile is generated on Windows, and Linux `npm ci` then fails on optional Rollup/esbuild binaries.)
 4. **Start:** `npx tsx server/index.ts`
 5. Env vars: `DATABASE_URL` (Internal URL on the Web Service), `PROBE_SECRET`, `NODE_ENV=production`.
 6. Health check path: `/api/health` (already set in `render.yaml`).

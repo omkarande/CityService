@@ -29,7 +29,7 @@ Node 20+, npm 10+. Copy `.env.example` → `.env` for `PROBE_SECRET` / optional 
 
 - **Website (seed JSON):** `npm run dev`, then open the URL Vite prints.
 - **Website (shared API locally):** `npm run dev:server` plus `VITE_USE_API=true` and `npm run dev`. Without `DATABASE_URL` the store is in-memory and resets on restart.
-- **Render:** Web Service build `npm ci --include=dev && npm run build`, start `npx tsx server/index.ts`, env Internal `DATABASE_URL`, `PROBE_SECRET`, `NODE_ENV=production`. Bookmark `/probe`; Account does not link it in production.
+- **Render:** Web Service build `npm install --include=dev && npm run build`, start `npx tsx server/index.ts`, env Internal `DATABASE_URL`, `PROBE_SECRET`, `NODE_ENV=production`. Bookmark `/probe`; Account does not link it in production.
 - **Android:** Capacitor 7. `npm run cap:sync` / `cap:android`. Needs **JDK 21**. Play Store listing, signing keys, and a privacy-policy URL for location are later.
 - **Live coverage recording:** `/probe` (map pin / GPS / known place, then Service tab). Production talks to Postgres; local Vite still uses the disk plugin unless `VITE_USE_API=true`.
 
