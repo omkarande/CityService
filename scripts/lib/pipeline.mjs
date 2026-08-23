@@ -185,10 +185,11 @@ export function suggest(count = 10) {
   const coarse = new Set(coarseGrid(universe));
   const platformById = new Map(platforms.map((p) => [p.id, p]));
 
+  const allPlatformIds = platforms.map((p) => p.id);
   const suggestions = [];
   const BOUNDARY_DISTANCE_KM = 4;
 
-  for (const platformId of TIER_1_PLATFORMS) {
+  for (const platformId of allPlatformIds) {
     const checkedForPlatform = checkpoints.filter((c) => c.platformId === platformId);
     const checkedPincodes = new Set(checkedForPlatform.map((c) => c.pincode));
     const qcomm = QCOMM_PLATFORMS.includes(platformId);
@@ -277,7 +278,7 @@ export function suggest(count = 10) {
     }
   }
 
-  for (const platformId of TIER_1_PLATFORMS) {
+  for (const platformId of allPlatformIds) {
     const checkedPincodes = new Set(
       checkpoints.filter((c) => c.platformId === platformId).map((c) => c.pincode),
     );
@@ -298,10 +299,29 @@ export function suggest(count = 10) {
     if (!existing || s.priority < existing.priority) seen.set(key, s);
   }
 
-  return [...seen.values()]
-    .sort((a, b) => a.priority - b.priority)
-    .slice(0, count)
-    .map((s) => {
+  const ranked = [...seen.values()].sort((a, b) => a.priority - b.priority);
+  const byPlatform = new Map();
+  for (const s of ranked) {
+    const list = byPlatform.get(s.platformId) ?? [];
+    list.push(s);
+    byPlatform.set(s.platformId, list);
+  }
+  const order = allPlatformIds.filter((id) => byPlatform.has(id));
+  const picked = [];
+  for (let i = 0; picked.length < count; i++) {
+    let added = false;
+    for (const id of order) {
+      const item = byPlatform.get(id)?.[i];
+      if (item) {
+        picked.push(item);
+        added = true;
+        if (picked.length >= count) break;
+      }
+    }
+    if (!added) break;
+  }
+
+  return picked.map((s) => {
       const pin = byPincode.get(s.pincode);
       const locality = localityForPincode(s.pincode, localities, pin);
       const platform = platformById.get(s.platformId);

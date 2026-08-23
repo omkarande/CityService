@@ -1,12 +1,15 @@
 /**
  * The single seam between screens and data.
  *
- * Today this points at the mock adapter reading local JSON. Phase 2 adds an
- * `httpAdapter` implementing the same surface and changes the line below —
- * nothing in `src/screens` or `src/components` should need touching.
+ * Production (and `VITE_USE_API=true`) uses the HTTP adapter against the Node
+ * API. Local `npm run dev` keeps the mock adapter on seed JSON.
  */
 
+import { httpAdapter } from './httpAdapter';
 import { mockAdapter } from './mockAdapter';
 
-export const api = mockAdapter;
-export type Api = typeof api;
+/** Production and `VITE_USE_API=true` talk to the Node API. Local Vite keeps seed JSON. */
+export const usesHttpApi = import.meta.env.PROD || import.meta.env.VITE_USE_API === 'true';
+
+export const api = usesHttpApi ? httpAdapter : mockAdapter;
+export type Api = typeof mockAdapter;

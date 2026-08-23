@@ -120,7 +120,7 @@ export interface UserReport {
 export type ConfidenceTier = 'verified' | 'likely' | 'unconfirmed';
 
 /** How far down the fallback ladder we had to go to answer. */
-export type ResolutionPath = 'exact' | 'pincode' | 'polygon' | 'city' | 'none';
+export type ResolutionPath = 'exact' | 'nearby' | 'pincode' | 'polygon' | 'city' | 'none';
 
 /** A single row on the results screen: the answer plus how much to trust it. */
 export interface ResolvedCoverage {
@@ -131,10 +131,13 @@ export interface ResolvedCoverage {
   resolvedFrom: ResolutionPath;
   /** The area the winning record was actually recorded against. */
   resolvedAreaName: string | null;
+  resolvedAreaId: string | null;
+  /** Distance from the asked point to the winning record, when borrowed. */
+  distanceKm: number | null;
   lastVerifiedAt: string | null;
   source: SourceKind | null;
   details?: CoverageDetails;
-  /** Human-readable caveat, e.g. "Estimated from Pune city data". */
+  /** Origin line, e.g. "Real data checked 200 m away (Vicky Properties)". */
   caveat: string | null;
 }
 

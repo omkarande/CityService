@@ -63,8 +63,9 @@ export function searchLocalities(
     }
 
     // A locality is a weak match for its own city name, so "Pune" surfaces
-    // the city itself first and its suburbs underneath.
-    if (locality.city !== locality.name) {
+    // the city itself first and its suburbs underneath. Skip pincode rows so
+    // office aliases and city fallbacks do not flood the list.
+    if (locality.kind !== 'pincode' && locality.city !== locality.name) {
       score = Math.max(score, matchScore(locality.city, needle, [25, 20, 10]));
     }
 

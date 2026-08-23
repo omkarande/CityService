@@ -34,6 +34,7 @@ export const SOURCE_WEIGHT: Record<SourceKind, number> = {
 /** Cost of each rung we drop down the fallback ladder. */
 export const LADDER_MULTIPLIER: Record<ResolutionPath, number> = {
   exact: 1.0,
+  nearby: 0.85,
   polygon: 0.9,
   pincode: 0.8,
   city: 0.45,
