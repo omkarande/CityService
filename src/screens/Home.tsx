@@ -5,6 +5,7 @@ import type { MapPin } from '../api/types';
 import CityGrid from '../components/CityGrid';
 import Icon from '../components/Icon';
 import SearchBar from '../components/SearchBar';
+import { getCurrentCoords, LocationPermissionError } from '../lib/location';
 
 type LocateState = { status: 'idle' } | { status: 'locating' } | { status: 'error'; message: string };
 
@@ -18,26 +19,26 @@ export default function Home() {
     api.mapPins().then(setPins);
   }, []);
 
-  function useMyLocation() {
-    if (!navigator.geolocation) {
-      setLocate({ status: 'error', message: 'This browser cannot share your location.' });
-      return;
-    }
-
+  async function useMyLocation() {
     setLocate({ status: 'locating' });
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        const match = await api.nearest(coords.latitude, coords.longitude);
-        if (!match) {
-          setLocate({ status: 'error', message: 'No seeded locality near you yet — try searching instead.' });
-          return;
-        }
-        setLocate({ status: 'idle' });
-        navigate(`/l/${match.locality.id}`, { state: { distanceKm: match.distanceKm } });
-      },
-      () => setLocate({ status: 'error', message: 'Location permission denied.' }),
-      { timeout: 10_000 },
-    );
+    try {
+      const coords = await getCurrentCoords();
+      const match = await api.nearest(coords.latitude, coords.longitude);
+      if (!match) {
+        setLocate({ status: 'error', message: 'No seeded locality near you yet — try searching instead.' });
+        return;
+      }
+      setLocate({ status: 'idle' });
+      navigate(`/l/${match.locality.id}`, { state: { distanceKm: match.distanceKm } });
+    } catch (err) {
+      const message =
+        err instanceof LocationPermissionError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : 'Location permission denied.';
+      setLocate({ status: 'error', message });
+    }
   }
 
   return (
@@ -124,6 +125,18 @@ export default function Home() {
         <section className="flex flex-col gap-sm">
           <h3 className="text-label-bold uppercase tracking-wider text-on-surface-variant">Explore by city</h3>
           <CityGrid />
+          <p className="text-[10px] text-on-surface-variant/70">
+            Landmark photos via{' '}
+            <a
+              href="https://commons.wikimedia.org/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2"
+            >
+              Wikimedia Commons
+            </a>{' '}
+            contributors, licensed CC BY-SA / public domain.
+          </p>
         </section>
       </div>
     </>

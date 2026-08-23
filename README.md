@@ -19,7 +19,7 @@ Every quick-commerce, delivery, and ride-hailing platform keeps its own private 
 
 ## Tech stack
 
-React 18 + Vite + TypeScript (strict) + Tailwind CSS, React Router, Leaflet/OpenStreetMap for maps, Vitest for unit tests. No backend, no accounts, no API keys — everything runs local against seed JSON.
+React 18 + Vite + TypeScript (strict) + Tailwind CSS, React Router, Leaflet/OpenStreetMap for maps, Vitest for unit tests. Android wrapper via Capacitor 7 (same `dist/` as the website). No backend, no accounts, no API keys — everything runs local against seed JSON.
 
 ## Getting started
 
@@ -38,6 +38,19 @@ npm test         # vitest
 
 Requires Node 20+ and npm 10+.
 
+## Android (Capacitor)
+
+The website is unchanged. Capacitor wraps the same Vite `dist/` in a native Android shell so you can install an APK / later publish to Play Store. One codebase, two outputs.
+
+```bash
+npm run cap:sync      # production build + copy into android/
+npm run cap:android   # sync, then run on a device or emulator
+```
+
+Needs **JDK 21** and Android Studio (an emulator or a phone with USB debugging). Capacitor 7’s Gradle build will not compile on JDK 17. First-time setup: open the `android/` folder in Android Studio, set Gradle JDK to 21, and let it sync.
+
+Play Store listing, signing keys, and a privacy-policy URL for the location permission are a later step — not required to run the APK locally.
+
 ## Project structure
 
 ```
@@ -47,7 +60,15 @@ src/
   data/       seed JSON: Pune localities, platforms, coverage records
   components/ shared UI pieces (cards, map, chips, badges...)
   screens/    one file per route
+  lib/        localStorage, GPS helper, Capacitor native shell
+android/      Capacitor Android project — same dist/ as the website
+scripts/
+  pick-next-check.mjs   next (pincode, platform) to check — also `npm run pipeline:pick`
+  record-check.mjs      write a live check into checkpoints + coverage
+  infer-hubs.mjs        apply Zepto/Blinkit/Instamart inner/edge disks
 ```
+
+Coverage checks (dev): `npm run dev` then open `/probe`. Copy the place string, set it on the platform site, one-click record. See [`ARCHITECTURE.md`](./ARCHITECTURE.md) §10.
 
 See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full data model, the coverage-resolution algorithm, and the planned backend phase.
 
