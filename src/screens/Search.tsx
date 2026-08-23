@@ -72,7 +72,7 @@ export default function Search() {
             <SearchMap suggestions={suggestions} pinsById={pinsById} />
             <p className="flex items-start gap-1.5 text-label-sm text-on-surface-variant">
               <Icon name="touch_app" size={14} className="mt-0.5 shrink-0 text-outline" />
-              Drag the black pin (or tap anywhere on the map) to fine-tune the exact spot, or tap a result below.
+              Drag the black pin, pinch or use +/− to zoom to a vasti, or tap a labelled pin. Expand for a full-screen picker.
             </p>
 
             <div className="flex flex-col gap-sm">
