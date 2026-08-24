@@ -4,7 +4,10 @@ services:
     runtime: node
     plan: starter
     healthCheckPath: /api/health
-    buildCommand: npm ci --include=dev && npm run build
+    # npm install, not npm ci: the lockfile is generated on Windows and
+    # newer npm on Linux refuses a clean install when optional platform
+    # binaries (Rollup/esbuild) are missing from the lockfile.
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npx tsx server/index.ts
     envVars:
       - key: NODE_ENV

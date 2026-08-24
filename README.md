@@ -4,7 +4,7 @@ Search a locality — right down to a single vasti or society — and see which 
 
 Every quick-commerce, delivery, and ride-hailing platform keeps its own private map of where it actually works, and none of them show it to you until after you've installed the app, signed up, and typed in your address. CityService is the missing public index of that coverage.
 
-> **Status:** public app is login-free. Coverage is served from a Node API + Postgres on Render; `/probe` is locked with a team password. Local `npm run dev` still uses seed JSON unless `VITE_USE_API=true`. Most coverage data is still placeholder, clearly marked in the UI. **After a reboot, start at [`PROGRESS.md`](./PROGRESS.md)**.
+> **Status:** public app is login-free and **deployed on Render** (Node API + Postgres). `/probe` is locked with a team password. Live-URL smoke testing is still pending. Local `npm run dev` still uses seed JSON unless `VITE_USE_API=true`. Most coverage data is still placeholder, clearly marked in the UI. **After a reboot, start at [`PROGRESS.md`](./PROGRESS.md)**.
 
 ![CityService screens](./screen3.png)
 
@@ -65,12 +65,14 @@ Play Store listing, signing keys, and a privacy-policy URL for the location perm
 
 ## Deploy on Render
 
-Use a **Web Service** (not a Static Site) plus **PostgreSQL**. Static hosts cannot write a database.
+The app **is deployed** as a Render **Web Service** (not a Static Site) plus the existing **PostgreSQL**. Static hosts cannot write a database.
 
-1. Create a PostgreSQL instance and copy `DATABASE_URL`.
-2. Create a Web Service from this repo, root directory = repo root, Node 20.
-3. **Build:** `npm ci --include=dev && npm run build`  
-   (`--include=dev` is required so Vite/TypeScript are present even when `NODE_ENV=production`.)
+If you recreate the service:
+
+1. Create a PostgreSQL instance and copy `DATABASE_URL` (or attach the instance you already have).
+2. Create a Web Service from this repo, branch **`main`**, root directory = repo root, Node 20.
+3. **Build:** `npm install --include=dev && npm run build`  
+   (`--include=dev` is required so Vite/TypeScript are present even when `NODE_ENV=production`. Use `npm install`, not `npm ci` — the lockfile is generated on Windows, and Linux `npm ci` then fails on optional Rollup/esbuild binaries.)
 4. **Start:** `npx tsx server/index.ts`
 5. Env vars: `DATABASE_URL` (Internal URL on the Web Service), `PROBE_SECRET`, `NODE_ENV=production`.
 6. Health check path: `/api/health` (already set in `render.yaml`).
@@ -79,9 +81,9 @@ If the Postgres instance **already exists**, create the Web Service and set `DAT
 
 On every start the server **upserts** seed JSON (named localities, gap pincodes, platforms, inferred hub rings). Live `/probe` rows and GPS places are never deleted. JSON never overwrites `source: probe`.
 
-There is a [`render.yaml`](./render.yaml) Blueprint if you prefer that. Set `PROBE_SECRET` in the dashboard (it is marked `sync: false`). Share the password in a password manager, not in git. Change it if it leaks.
+There is a [`render.yaml`](./render.yaml) Blueprint if you prefer that. An **existing** service uses the dashboard Build Command; changing `render.yaml` locally does nothing until you push **and** the dashboard matches. Set `PROBE_SECRET` in the dashboard (it is marked `sync: false`). Share the password in a password manager, not in git. Change it if it leaks.
 
-After the first deploy: open `https://<service>.onrender.com/probe`, enter the team password, record one platform, then confirm an incognito window sees it on Results with no login. The Account screen does not link to `/probe` in production — bookmark the URL.
+**Smoke test (still pending):** open `/api/health`, the homepage, search a place, then `/probe` with the team password. Confirm an incognito window sees a new record on Results with no login. The Account screen does not link to `/probe` in production — bookmark the URL.
 
 Free/starter web services sleep; Postgres data stays. The first request after sleep is slow.
 
@@ -110,6 +112,7 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full data model, the coverage
 ## Docs
 
 - [`PROGRESS.md`](./PROGRESS.md) — **start here after closing the laptop** (resume commands, real-data inventory, next steps)
+- [`GIT-AND-DEPLOY.md`](./GIT-AND-DEPLOY.md) — git branches, PR/CI, and Render pitfalls from the first production deploy
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md) — data model, confidence/resolution, §10 collection methods
 - [`DESIGN.md`](./DESIGN.md) — original design tokens/spec
 

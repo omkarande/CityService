@@ -12,6 +12,7 @@ const config: CapacitorConfig = {
   plugins: {
     CapacitorHttp: {
       // Native HTTP so the WebView can call Render without CORS blocking fetch.
+      // Native HTTP so the WebView can call the Render API without CORS.
       enabled: true,
     },
     SplashScreen: {

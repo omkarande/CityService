@@ -193,7 +193,7 @@ That third rule is also the best demo of the mechanic: tapping "Yes, it works" a
 
 ### Phase 2 — Backend (this cut)
 
-**Render Web Service (Node 20 + Express) + Render PostgreSQL.** `DATABASE_URL` and `PROBE_SECRET` are env vars. The public site stays login-free; only `/probe` write routes require the team password (httpOnly cookie after `POST /api/probe/login`, or `Authorization: Bearer`).
+**Render Web Service (Node 20 + Express) + Render PostgreSQL — live as of 2026-08-24.** `DATABASE_URL` and `PROBE_SECRET` are env vars. The public site stays login-free; only `/probe` write routes require the team password (httpOnly cookie after `POST /api/probe/login`, or `Authorization: Bearer`). End-to-end smoke test of the production URL is still pending (`PROGRESS.md`).
 
 Tables map 1:1 to the types above: `categories`, `localities`, `platforms`, `coverage`. Resolution runs server-side (`src/domain/resolve.ts`) and returns `AreaResult`. User reports and PostGIS polygons are still out of scope.
 

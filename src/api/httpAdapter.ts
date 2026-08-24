@@ -14,13 +14,11 @@ import { Capacitor } from '@capacitor/core';
 import { reportStore, reporterId } from '../lib/storage';
 import { forwardGeocode } from '../lib/nominatim';
 
-const LIVE_API = 'https://cityservice.onrender.com';
-
 function apiBase(): string {
   const fromEnv = String(import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '');
   if (fromEnv) return fromEnv;
   // Capacitor WebView is https://localhost — relative /api would miss Render.
-  if (Capacitor.isNativePlatform()) return LIVE_API;
+  if (Capacitor.isNativePlatform()) return 'https://cityservice.onrender.com';
   return '';
 }
 
