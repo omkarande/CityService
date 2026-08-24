@@ -188,9 +188,14 @@ export const httpAdapter = {
 
   async geocode(query: string) {
     try {
-      return await request<{ lat: number; lng: number; name: string; city: string; state: string }>(
-        `/api/geocode?q=${encodeURIComponent(query)}`,
-      );
+      return await request<{
+        lat: number;
+        lng: number;
+        name: string;
+        city: string;
+        state: string;
+        boundingBox?: [number, number, number, number];
+      }>(`/api/geocode?q=${encodeURIComponent(query)}`);
     } catch {
       return null;
     }
