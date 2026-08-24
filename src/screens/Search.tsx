@@ -8,6 +8,7 @@ import LocalityRow from '../components/LocalityRow';
 import SearchBar from '../components/SearchBar';
 import SearchMap from '../components/SearchMap';
 import TopBar from '../components/TopBar';
+import type { GeocodeHit } from '../lib/nominatim';
 import { useVisibilityRefresh } from '../lib/useVisibilityRefresh';
 
 /**
@@ -19,7 +20,7 @@ export default function Search() {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<LocalitySuggestion[]>([]);
   const [pins, setPins] = useState<MapPin[]>([]);
-  const [geoHit, setGeoHit] = useState<{ lat: number; lng: number; name: string } | null>(null);
+  const [geoHit, setGeoHit] = useState<GeocodeHit | null>(null);
 
   const loadPins = useCallback(() => {
     api.mapPins().then(setPins);
@@ -35,16 +36,15 @@ export default function Search() {
     }
     let cancelled = false;
     const timer = setTimeout(async () => {
-      const results = await api.search(query);
+      const q = query.trim();
+      const [results, hit] = await Promise.all([
+        api.search(query),
+        q.length >= 3 ? api.geocode(query) : Promise.resolve(null),
+      ]);
       if (cancelled) return;
       setSuggestions(results);
-      if (results.length === 0 && query.trim().length >= 3) {
-        const hit = await api.geocode(query);
-        if (!cancelled) setGeoHit(hit);
-      } else {
-        setGeoHit(null);
-      }
-    }, 200);
+      setGeoHit(hit);
+    }, 280);
 
     return () => {
       cancelled = true;
@@ -77,15 +77,15 @@ export default function Search() {
               suggestions={suggestions}
               pinsById={pinsById}
               queryName={query.trim()}
-              initialCenter={unknown ? geoHit : null}
-              showCompactConfirm={unknown}
-              confirmLabel="Select this location"
+              initialCenter={geoHit}
+              showCompactConfirm
+              confirmLabel="Select this pinned location"
             />
             <p className="flex items-start gap-1.5 text-label-sm text-on-surface-variant">
               <Icon name="touch_app" size={14} className="mt-0.5 shrink-0 text-outline" />
               {unknown
-                ? 'No saved match. Drop the pin on the building, then select this location.'
-                : 'Drag the black pin, pinch or use +/− to zoom, or tap a labelled pin. Expand for a full-screen picker.'}
+                ? 'Map follows the place you typed. Drag the pin to the exact spot, then tap Select this pinned location.'
+                : 'Map follows the place you typed. Drag the pin if needed, tap a labelled pin for a saved place, or select this pinned location.'}
             </p>
 
             {suggestions.length > 0 && (

@@ -17,6 +17,23 @@ export function normalize(input: string): string {
     .trim();
 }
 
+function fieldBlob(locality: Locality, byId: Map<string, Locality>): string {
+  const parents = ancestorChain(locality.id, byId).map((a) => a.name);
+  return normalize(
+    [locality.name, ...locality.aliases, locality.pincode ?? '', locality.city, ...parents].join(' '),
+  );
+}
+
+/** Compound queries like "shinde vasti ravet" must match every token, not just "shinde vasti". */
+function everyTokenMatches(needle: string, locality: Locality, byId: Map<string, Locality>): boolean {
+  const tokens = needle.split(' ').filter(Boolean);
+  if (tokens.length <= 1) return true;
+  const blob = fieldBlob(locality, byId);
+  return tokens.every(
+    (token) => blob.includes(token) || blob.split(' ').some((word) => word.startsWith(token)),
+  );
+}
+
 function matchScore(haystack: string, needle: string, weights: [number, number, number]): number {
   const h = normalize(haystack);
   if (!h) return 0;
@@ -69,7 +86,7 @@ export function searchLocalities(
       score = Math.max(score, matchScore(locality.city, needle, [25, 20, 10]));
     }
 
-    if (score > 0) {
+    if (score > 0 && everyTokenMatches(needle, locality, byId)) {
       scored.push({ locality, context: buildContext(locality, byId), score });
     }
   }

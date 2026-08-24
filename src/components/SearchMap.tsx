@@ -11,6 +11,7 @@ import MapZoomButtons from './MapZoomButtons';
 import { coverageColor, formatDistance } from '../lib/format';
 
 const PUNE_CENTER: [number, number] = [18.6, 73.85];
+const MIN_ZOOM = 5;
 
 /** Street-level; OSM raster tiles go to 19. */
 const STREET_ZOOM = 17;
@@ -28,13 +29,31 @@ const pickIcon = L.divIcon({
   iconAnchor: [15, 15],
 });
 
-/** Re-frames when there are no DB matches — geocode guess or Pune default. Does not follow drags. */
-function Recenter({ position }: { position: [number, number] }) {
+/** Re-frames to a geocode hit (or Pune). Does not follow drags. */
+function Recenter({
+  position,
+  boundingBox,
+}: {
+  position: [number, number];
+  boundingBox?: [number, number, number, number];
+}) {
   const map = useMap();
+  const boxKey = boundingBox?.join(',') ?? '';
   useEffect(() => {
+    if (boundingBox) {
+      const [south, north, west, east] = boundingBox;
+      map.fitBounds(
+        [
+          [south, west],
+          [north, east],
+        ],
+        { padding: [28, 28], maxZoom: STREET_ZOOM },
+      );
+      return;
+    }
     map.setView(position, STREET_ZOOM);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position[0], position[1], map]);
+  }, [position[0], position[1], boxKey, map]);
   return null;
 }
 
@@ -71,19 +90,33 @@ interface MapLayersProps {
   pinsById: Map<string, MapPin>;
   picked: [number, number] | null;
   focus: [number, number];
+  boundingBox?: [number, number, number, number];
+  followGeocode: boolean;
   highlightId: string | null;
   onPickLocality: (localityId: string) => void;
   onMovePin: (lat: number, lng: number) => void;
 }
 
 /** The pieces shared between the compact preview and the expanded picker. */
-function MapLayers({ suggestions, pinsById, picked, focus, highlightId, onPickLocality, onMovePin }: MapLayersProps) {
+function MapLayers({
+  suggestions,
+  pinsById,
+  picked,
+  focus,
+  boundingBox,
+  followGeocode,
+  highlightId,
+  onPickLocality,
+  onMovePin,
+}: MapLayersProps) {
   const labelPins = suggestions.length <= 6;
 
   return (
     <>
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" maxZoom={OSM_MAX_ZOOM} />
-      {suggestions.length > 0 ? (
+      {followGeocode ? (
+        <Recenter position={focus} boundingBox={boundingBox} />
+      ) : suggestions.length > 0 ? (
         <FitToSuggestions suggestions={suggestions} />
       ) : (
         <Recenter position={focus} />
@@ -142,8 +175,8 @@ interface SearchMapProps {
   pinsById: Map<string, MapPin>;
   /** Passed through to `/at?q=` so Results keep the searched building name. */
   queryName?: string;
-  /** When there are no DB matches, center here (geocode guess) or Pune. */
-  initialCenter?: { lat: number; lng: number } | null;
+  /** Center here from geocode (any India place), even when catalog rows also match. */
+  initialCenter?: { lat: number; lng: number; boundingBox?: [number, number, number, number] } | null;
   showCompactConfirm?: boolean;
   confirmLabel?: string;
   /** If set, confirm calls this instead of navigating (used by /probe). */
@@ -161,16 +194,17 @@ export default function SearchMap({
   queryName,
   initialCenter,
   showCompactConfirm = false,
-  confirmLabel = 'Select this location',
+  confirmLabel = 'Select this pinned location',
   onConfirm,
   onPinChange,
 }: SearchMapProps) {
   const navigate = useNavigate();
   const first = suggestions[0]?.locality.center;
-  const focus: [number, number] = first
-    ? [first.lat, first.lng]
-    : initialCenter
-      ? [initialCenter.lat, initialCenter.lng]
+  const followGeocode = Boolean(initialCenter);
+  const focus: [number, number] = initialCenter
+    ? [initialCenter.lat, initialCenter.lng]
+    : first
+      ? [first.lat, first.lng]
       : PUNE_CENTER;
 
   const [picked, setPicked] = useState<[number, number]>(focus);
@@ -179,10 +213,10 @@ export default function SearchMap({
 
   useEffect(() => {
     setPicked(
-      first
-        ? [first.lat, first.lng]
-        : initialCenter
-          ? [initialCenter.lat, initialCenter.lng]
+      initialCenter
+        ? [initialCenter.lat, initialCenter.lng]
+        : first
+          ? [first.lat, first.lng]
           : PUNE_CENTER,
     );
   }, [first?.lat, first?.lng, initialCenter?.lat, initialCenter?.lng]);
@@ -235,6 +269,8 @@ export default function SearchMap({
     pinsById,
     picked,
     focus,
+    boundingBox: initialCenter?.boundingBox,
+    followGeocode,
     highlightId: nearest?.id ?? null,
     onMovePin: movePin,
   };
@@ -246,7 +282,7 @@ export default function SearchMap({
           <MapContainer
             center={focus}
             zoom={STREET_ZOOM}
-            minZoom={11}
+            minZoom={MIN_ZOOM}
             maxZoom={OSM_MAX_ZOOM}
             scrollWheelZoom
             zoomControl={false}
@@ -305,7 +341,7 @@ export default function SearchMap({
             <MapContainer
               center={picked}
               zoom={STREET_ZOOM}
-              minZoom={11}
+              minZoom={MIN_ZOOM}
               maxZoom={OSM_MAX_ZOOM}
               scrollWheelZoom
               zoomControl={false}

@@ -145,6 +145,32 @@ async function main() {
   const app = express();
   app.set('trust proxy', 1);
   app.use(express.json({ limit: '200kb' }));
+  // Capacitor WebView is https://localhost, so /api calls to Render are
+  // cross-origin. Without these headers the APK dies with "Failed to fetch".
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (
+      origin &&
+      (origin === 'https://localhost' ||
+        origin === 'http://localhost' ||
+        origin === 'capacitor://localhost' ||
+        origin === 'ionic://localhost' ||
+        origin === 'https://cityservice.onrender.com' ||
+        /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
+        origin.endsWith('.onrender.com'))
+    ) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Vary', 'Origin');
+    }
+    if (req.method === 'OPTIONS') {
+      res.status(204).end();
+      return;
+    }
+    next();
+  });
   app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (err instanceof SyntaxError) {
       res.status(400).json({ error: 'Invalid JSON' });

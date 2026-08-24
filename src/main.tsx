@@ -23,5 +23,5 @@ void api
   })
   .catch((err: unknown) => {
     const message = err instanceof Error ? err.message : String(err);
-    root.textContent = `Could not load CityService (${message}).`;
+    root.textContent = `Could not load CityService (${message}). The app needs the live API. Check internet, wait if Render is waking up, then reopen.`;
   });
