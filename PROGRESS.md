@@ -1,12 +1,12 @@
 # CityService — Progress & Resume Notes
 
-> Session handoff doc. Read this first in a new session, then `ARCHITECTURE.md` for the full data model and reasoning (including §10's data-acquisition methods and their current Pune+PCMC status), then `DESIGN.md` for the original design tokens/spec this was built from.
+> Session handoff doc. Read this first in a new session, then `ARCHITECTURE.md` for the full data model and reasoning (including §10's data-acquisition methods and their current Pune+PCMC status), then `DESIGN.md` for the original design tokens/spec this was built from. Git/PR/Render mistakes from the first deploy: [`GIT-AND-DEPLOY.md`](./GIT-AND-DEPLOY.md).
 
 ## Status (as of 2026-08-24)
 
 Shared coverage API is in the repo: `server/` (Express + Postgres). On start the catalog **upserts** from JSON: named Pune localities, gap pincode centroids, platforms, and Zepto MIDC hub rings as `source: seed`. Live `/probe` rows and GPS places are kept. Public visitors stay login-free. `/probe` is team-password gated (`PROBE_SECRET`). Android wrap via Capacitor 7 (`android/`, same `dist/` as the website). **Real live-checked coverage: 1 locality × 8 platforms** (Pimpri-Chinchwad, pincode 411018, 2026-08-14).
 
-Branch to ship: **`om`** (after merging `map-zoom`). Deploy: Render **Web Service** + existing **PostgreSQL** (Internal `DATABASE_URL`). See README.
+**Production is deployed** on Render (Web Service + the existing PostgreSQL). Shipping branch is **`main`** (PR #3 from `om`). End-to-end smoke test of the live URL is **not done yet** — next session. Pitfalls from the first deploy: [`GIT-AND-DEPLOY.md`](./GIT-AND-DEPLOY.md).
 
 ## Resume after reboot (copy-paste)
 
@@ -29,7 +29,7 @@ Node 20+, npm 10+. Copy `.env.example` → `.env` for `PROBE_SECRET` / optional 
 
 - **Website (seed JSON):** `npm run dev`, then open the URL Vite prints.
 - **Website (shared API locally):** `npm run dev:server` plus `VITE_USE_API=true` and `npm run dev`. Without `DATABASE_URL` the store is in-memory and resets on restart.
-- **Render:** Web Service build `npm install --include=dev && npm run build`, start `npx tsx server/index.ts`, env Internal `DATABASE_URL`, `PROBE_SECRET`, `NODE_ENV=production`. Bookmark `/probe`; Account does not link it in production.
+- **Render (live):** Web Service + existing Postgres. Build `npm install --include=dev && npm run build`, start `npx tsx server/index.ts`, env Internal `DATABASE_URL`, `PROBE_SECRET`, `NODE_ENV=production`. Bookmark `/probe`; Account does not link it in production. First request after sleep is slow. **Smoke-test the live URL next session.**
 - **Android:** Capacitor 7. `npm run cap:sync` / `cap:android`. Needs **JDK 21**. Play Store listing, signing keys, and a privacy-policy URL for location are later.
 - **Live coverage recording:** `/probe` (map pin / GPS / known place, then Service tab). Production talks to Postgres; local Vite still uses the disk plugin unless `VITE_USE_API=true`.
 
@@ -42,6 +42,7 @@ Node 20+, npm 10+. Copy `.env.example` → `.env` for `PROBE_SECRET` / optional 
 - Unknown search always shows a map + “Select this location” → `/at?lat=&lng=&q=`. Resolver: exact pin → nearby specific place ≤2 km → general suburb/city.
 - `/probe` password gate; records POST to the API when using HTTP. Account “Record coverage” link is hidden in production.
 - Merge of `map-zoom` into `om`: keep Capacitor native shell + GPS helper, keep API/search/probe, keep pipeline scripts.
+- PR #3 (`om` → `main`) merged. Render Web Service deploy succeeded after Windows lockfile / Linux `npm ci` issues (see `GIT-AND-DEPLOY.md`). Live site smoke test deferred.
 
 ## Session report — 2026-08-23 (Capacitor + pipeline)
 
@@ -100,16 +101,15 @@ React 18 + Vite + TypeScript (strict) + Tailwind, React Router, Leaflet/OpenStre
 | **3a** | Auth: stay anonymous for public visitors | Done by design |
 | **3b** | Real user accounts | Not started; not needed for public read |
 | **4** | Crowdsourcing loop: move reports off `localStorage` | Not started |
-| **5** | Production readiness: Render deploy, brand/logo licensing | Deploy wiring in repo; first production URL still the user’s next step |
+| **5** | Production readiness: Render deploy, brand/logo licensing | **Render Web Service is live.** Visual/smoke test of the production URL, brand/logo review still open |
 
 ## Where to pick up (next session)
 
-1. **Finish the `om` merge commit** if it is still in progress, then `git push origin om` and open a PR to `main`.
-2. **Render Web Service** from GitHub (`om` or `main` after merge). Attach the **existing** Postgres Internal `DATABASE_URL`. Do not apply Blueprint if it would create a second DB.
+1. **Smoke-test production** (not done yet): `/api/health`, Home / Search / a Results page, then `/probe` with `PROBE_SECRET`. Incognito should see a probe record with no login. First load may be slow if the service was asleep.
+2. **Visually sanity-check** Results / PlatformDetail / Nearby / Saved / Account (localhost or the live URL).
 3. **Resume Phase 1 checking** at `/probe`. For Zepto, the picker skips the MIDC inner disk and queues the 3–5 km rim first.
-4. **Visually sanity-check** Results / PlatformDetail / Nearby / Saved / Account.
-5. **Calibrate hub radii** with rim checks around MIDC. Do not treat 5–6 km as served.
-6. **Commit `android/`** only if you want the native project in git.
+4. **Calibrate hub radii** with rim checks around MIDC. Do not treat 5–6 km as served.
+5. **Commit `android/`** only if you want the native project in git. Do not commit `.env`, `login.json`, or `record.json`.
 
 ## Known gaps
 
@@ -118,6 +118,6 @@ React 18 + Vite + TypeScript (strict) + Tailwind, React Router, Leaflet/OpenStre
 - The 55-pincode list is a verified floor, not proven exhaustive for PCMC’s outer edge.
 - Instamart’s logo is Swiggy’s mark.
 - Brand logos: skim Amazon/Uber guidelines before public launch.
-- Visual verification of several screens in a real browser is still outstanding.
+- Visual verification of several screens (and the live Render URL) is still outstanding.
 - Legal/ToS review still gates unattended probing.
 - Thumbs-up reports still live in `localStorage` on this device only.

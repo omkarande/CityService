@@ -10,6 +10,10 @@ const config: CapacitorConfig = {
     allowMixedContent: false,
   },
   plugins: {
+    CapacitorHttp: {
+      // Native HTTP so the WebView can call the Render API without CORS.
+      enabled: true,
+    },
     SplashScreen: {
       launchShowDuration: 0,
       launchAutoHide: false,

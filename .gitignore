@@ -26,6 +26,11 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+.env.production
+
+# Accidental local dumps — never commit
+login.json
+record.json
 
 # Capacitor / Android local build output (the android/ project itself is committed)
 android/app/build/
