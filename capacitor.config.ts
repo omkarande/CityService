@@ -10,6 +10,10 @@ const config: CapacitorConfig = {
     allowMixedContent: false,
   },
   plugins: {
+    CapacitorHttp: {
+      // Native HTTP so the WebView can call Render without CORS blocking fetch.
+      enabled: true,
+    },
     SplashScreen: {
       launchShowDuration: 0,
       launchAutoHide: false,
@@ -19,6 +23,7 @@ const config: CapacitorConfig = {
     StatusBar: {
       style: 'DARK',
       backgroundColor: '#FBF7F0',
+      overlaysWebView: false,
     },
   },
 };

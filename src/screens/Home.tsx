@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
@@ -11,6 +12,7 @@ import { useVisibilityRefresh } from '../lib/useVisibilityRefresh';
 type LocateState = { status: 'idle' } | { status: 'locating' } | { status: 'error'; message: string };
 
 export default function Home() {
+  const native = Capacitor.isNativePlatform();
   const navigate = useNavigate();
 
   const [pins, setPins] = useState<MapPin[]>([]);
@@ -40,8 +42,8 @@ export default function Home() {
   }
 
   return (
-    <>
-      <div className="rounded-b-3xl bg-[#FBF7F0] text-on-surface">
+    <div className={native ? 'flex min-h-0 flex-1 flex-col' : undefined}>
+      <div className="shrink-0 rounded-b-3xl bg-[#FBF7F0] text-on-surface">
         <header className="sticky top-0 z-30 bg-[#FBF7F0] px-6 pb-3 pt-3">
           <div className="mb-3 flex items-center justify-between gap-3">
             <button
@@ -119,24 +121,18 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="animate-fade-up px-6 pb-lg pt-4">
-        <section className="flex flex-col gap-sm">
-          <h3 className="text-label-bold uppercase tracking-wider text-on-surface-variant">Explore by city</h3>
+      <div
+        className={
+          native ? 'flex min-h-0 flex-1 flex-col px-6 pb-2 pt-4' : 'animate-fade-up px-6 pb-lg pt-4'
+        }
+      >
+        <section className={native ? 'flex min-h-0 flex-1 flex-col gap-sm' : 'flex flex-col gap-sm'}>
+          <h3 className="shrink-0 text-label-bold uppercase tracking-wider text-on-surface-variant">
+            Explore by city
+          </h3>
           <CityGrid />
-          <p className="text-[10px] text-on-surface-variant/70">
-            Landmark photos via{' '}
-            <a
-              href="https://commons.wikimedia.org/"
-              target="_blank"
-              rel="noreferrer"
-              className="underline underline-offset-2"
-            >
-              Wikimedia Commons
-            </a>{' '}
-            contributors, licensed CC BY-SA / public domain.
-          </p>
         </section>
       </div>
-    </>
+    </div>
   );
 }

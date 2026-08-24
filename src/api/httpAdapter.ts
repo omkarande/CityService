@@ -10,9 +10,21 @@ import type {
   UserReport,
   Verdict,
 } from './types';
+import { Capacitor } from '@capacitor/core';
 import { reportStore, reporterId } from '../lib/storage';
+import { forwardGeocode } from '../lib/nominatim';
 
-const base = String(import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '');
+const LIVE_API = 'https://cityservice.onrender.com';
+
+function apiBase(): string {
+  const fromEnv = String(import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '');
+  if (fromEnv) return fromEnv;
+  // Capacitor WebView is https://localhost — relative /api would miss Render.
+  if (Capacitor.isNativePlatform()) return LIVE_API;
+  return '';
+}
+
+const base = apiBase();
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${base}${path}`, {
@@ -41,14 +53,25 @@ let localities: Locality[] = [];
 let ready: Promise<void> | null = null;
 
 async function loadCatalog() {
-  const catalog = await request<{
-    categories: Category[];
-    platforms: Platform[];
-    localities: Locality[];
-  }>('/api/catalog');
-  categories = catalog.categories;
-  platforms = catalog.platforms;
-  localities = catalog.localities;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const catalog = await request<{
+        categories: Category[];
+        platforms: Platform[];
+        localities: Locality[];
+      }>('/api/catalog');
+      categories = catalog.categories;
+      platforms = catalog.platforms;
+      localities = catalog.localities;
+      return;
+    } catch (err) {
+      lastError = err;
+      // Render free tier can take ~30–40s to wake.
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+    }
+  }
+  throw lastError;
 }
 
 export const httpAdapter = {
@@ -188,7 +211,7 @@ export const httpAdapter = {
         boundingBox?: [number, number, number, number];
       }>(`/api/geocode?q=${encodeURIComponent(query)}`);
     } catch {
-      return null;
+      return forwardGeocode(query);
     }
   },
 

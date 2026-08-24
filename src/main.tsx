@@ -6,12 +6,13 @@ import { api } from './api/client';
 import { initNativeShell } from './lib/native';
 import './index.css';
 
-void initNativeShell();
-
 const root = document.getElementById('root')!;
+root.textContent = 'Starting CityService…';
 
-void api
-  .ready()
+void initNativeShell().then(() => {
+  root.textContent = 'Connecting to CityService…';
+  return api.ready();
+})
   .then(() => {
     ReactDOM.createRoot(root).render(
       <React.StrictMode>

@@ -7,10 +7,12 @@ interface TopBarProps {
   back?: boolean;
   /** Label rendered next to the back arrow, e.g. "Back to Nearby Services". */
   backLabel?: string;
+  /** Override the default history back. */
+  onBack?: () => void;
   action?: React.ReactNode;
 }
 
-export default function TopBar({ title = 'CityService', back = false, backLabel, action }: TopBarProps) {
+export default function TopBar({ title = 'CityService', back = false, backLabel, onBack, action }: TopBarProps) {
   const navigate = useNavigate();
 
   return (
@@ -20,7 +22,7 @@ export default function TopBar({ title = 'CityService', back = false, backLabel,
           {back ? (
             <button
               aria-label="Go back"
-              onClick={() => navigate(-1)}
+              onClick={() => (onBack ? onBack() : navigate(-1))}
               className="-ml-2 flex items-center gap-2 rounded-full p-2 text-primary transition-colors hover:bg-surface-container-highest active:scale-95"
             >
               <Icon name="arrow_back" />

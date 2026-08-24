@@ -26,6 +26,8 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+.env.production
+
 
 # Capacitor / Android local build output (the android/ project itself is committed)
 android/app/build/
@@ -39,3 +41,6 @@ android/app/.cxx/
 *.aab
 *.iml
 .idea/
+
+login.json
+record.json

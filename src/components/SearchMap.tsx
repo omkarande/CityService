@@ -9,6 +9,8 @@ import ClickToSearch from './ClickToSearch';
 import Icon from './Icon';
 import MapZoomButtons from './MapZoomButtons';
 import { coverageColor, formatDistance } from '../lib/format';
+import { isLooseBoundingBox } from '../lib/nominatim';
+import type { PlaceHit } from '../lib/nominatim';
 
 const PUNE_CENTER: [number, number] = [18.6, 73.85];
 const MIN_ZOOM = 5;
@@ -29,7 +31,22 @@ const pickIcon = L.divIcon({
   iconAnchor: [15, 15],
 });
 
-/** Re-frames to a geocode hit (or Pune). Does not follow drags. */
+function nearbyLabelIcon(name: string) {
+  const safe = name
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+  return L.divIcon({
+    className: '',
+    html:
+      '<div style="transform:translate(-50%,-100%);white-space:nowrap;background:#fff;color:#1a1a1a;' +
+      'font:600 11px/1.2 system-ui,sans-serif;padding:3px 7px;border-radius:999px;box-shadow:0 1px 4px rgba(0,0,0,.25);' +
+      `border:1px solid rgba(0,0,0,.08);">${safe}</div>`,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+  });
+}
 function Recenter({
   position,
   boundingBox,
@@ -40,7 +57,7 @@ function Recenter({
   const map = useMap();
   const boxKey = boundingBox?.join(',') ?? '';
   useEffect(() => {
-    if (boundingBox) {
+    if (boundingBox && !isLooseBoundingBox(boundingBox)) {
       const [south, north, west, east] = boundingBox;
       map.fitBounds(
         [
@@ -93,8 +110,10 @@ interface MapLayersProps {
   boundingBox?: [number, number, number, number];
   followGeocode: boolean;
   highlightId: string | null;
+  nearbyPlaces: PlaceHit[];
   onPickLocality: (localityId: string) => void;
   onMovePin: (lat: number, lng: number) => void;
+  onNearbyPick?: (place: PlaceHit) => void;
 }
 
 /** The pieces shared between the compact preview and the expanded picker. */
@@ -106,8 +125,10 @@ function MapLayers({
   boundingBox,
   followGeocode,
   highlightId,
+  nearbyPlaces,
   onPickLocality,
   onMovePin,
+  onNearbyPick,
 }: MapLayersProps) {
   const labelPins = suggestions.length <= 6;
 
@@ -152,6 +173,21 @@ function MapLayers({
         );
       })}
 
+      {nearbyPlaces.map((place) => (
+        <Marker
+          key={place.id}
+          position={[place.lat, place.lng]}
+          icon={nearbyLabelIcon(place.name)}
+          zIndexOffset={200}
+          eventHandlers={{
+            click: (e) => {
+              L.DomEvent.stopPropagation(e);
+              onNearbyPick?.(place);
+            },
+          }}
+        />
+      ))}
+
       {picked && (
         <Marker
           position={picked}
@@ -177,8 +213,13 @@ interface SearchMapProps {
   queryName?: string;
   /** Center here from geocode (any India place), even when catalog rows also match. */
   initialCenter?: { lat: number; lng: number; boundingBox?: [number, number, number, number] } | null;
+  pinLabel?: string;
+  nearbyPlaces?: PlaceHit[];
+  onNearbyPick?: (place: PlaceHit) => void;
   showCompactConfirm?: boolean;
   confirmLabel?: string;
+  /** Shorter map while the keyboard is open so the confirm button stays on screen. */
+  compact?: boolean;
   /** If set, confirm calls this instead of navigating (used by /probe). */
   onConfirm?: (lat: number, lng: number) => void;
   onPinChange?: (lat: number, lng: number) => void;
@@ -193,8 +234,12 @@ export default function SearchMap({
   pinsById,
   queryName,
   initialCenter,
+  pinLabel,
+  nearbyPlaces = [],
+  onNearbyPick,
   showCompactConfirm = false,
   confirmLabel = 'Select this pinned location',
+  compact = false,
   onConfirm,
   onPinChange,
 }: SearchMapProps) {
@@ -254,6 +299,7 @@ export default function SearchMap({
   }
 
   function confirmPick() {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     if (onConfirm) {
       onConfirm(picked[0], picked[1]);
       return;
@@ -272,13 +318,17 @@ export default function SearchMap({
     boundingBox: initialCenter?.boundingBox,
     followGeocode,
     highlightId: nearest?.id ?? null,
+    nearbyPlaces,
     onMovePin: movePin,
+    onNearbyPick,
   };
 
   return (
     <>
       <div className="flex flex-col gap-sm">
-        <div className="relative h-64 w-full overflow-hidden rounded-2xl shadow-soft">
+        <div
+          className={`relative w-full overflow-hidden rounded-2xl shadow-soft ${compact ? 'h-40' : 'h-64'}`}
+        >
           <MapContainer
             center={focus}
             zoom={STREET_ZOOM}
@@ -303,10 +353,15 @@ export default function SearchMap({
             Expand
           </button>
 
-          {nearest && (
+          {(pinLabel || nearest) && (
             <p className="pointer-events-none absolute inset-x-3 bottom-3 z-[1000] truncate rounded-full bg-white/95 px-3 py-1.5 text-center text-label-sm font-semibold text-on-surface shadow-md">
-              {nearest.name}
-              <span className="font-normal text-on-surface-variant"> · {formatDistance(nearest.distanceKm)}</span>
+              {pinLabel || nearest?.name}
+              {!pinLabel && nearest && (
+                <span className="font-normal text-on-surface-variant">
+                  {' '}
+                  · {formatDistance(nearest.distanceKm)}
+                </span>
+              )}
             </p>
           )}
         </div>
@@ -315,7 +370,7 @@ export default function SearchMap({
           <button
             type="button"
             onClick={confirmPick}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 text-body-lg font-bold text-on-primary shadow-soft active:scale-[0.99]"
+            className="sticky bottom-2 z-[1100] flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 text-body-lg font-bold text-on-primary shadow-soft active:scale-[0.99]"
           >
             <Icon name="check" size={18} />
             {confirmLabel}
@@ -324,7 +379,7 @@ export default function SearchMap({
       </div>
 
       {expanded && (
-        <div className="fixed inset-0 z-[2000] flex flex-col bg-surface">
+        <div className="app-safe-top fixed inset-0 z-[2000] flex flex-col bg-surface">
           <div className="flex shrink-0 items-center gap-2 border-b border-outline-variant/30 px-margin-mobile py-3">
             <button
               type="button"
@@ -361,11 +416,20 @@ export default function SearchMap({
           </div>
 
           <div className="shrink-0 border-t border-outline-variant/30 p-margin-mobile">
-            {nearest && (
+            {(pinLabel || nearest) && (
               <p className="mb-2 text-center text-body-md text-on-surface-variant">
-                Nearest tracked locality: <span className="font-semibold text-on-surface">{nearest.name}</span>
-                {' · '}
-                {formatDistance(nearest.distanceKm)}
+                {pinLabel ? (
+                  <>
+                    Selected: <span className="font-semibold text-on-surface">{pinLabel}</span>
+                  </>
+                ) : (
+                  <>
+                    Nearest tracked locality:{' '}
+                    <span className="font-semibold text-on-surface">{nearest?.name}</span>
+                    {' · '}
+                    {nearest && formatDistance(nearest.distanceKm)}
+                  </>
+                )}
               </p>
             )}
             <button

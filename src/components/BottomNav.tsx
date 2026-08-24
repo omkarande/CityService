@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { NavLink } from 'react-router-dom';
 import Icon from './Icon';
 
@@ -9,8 +10,16 @@ const TABS = [
 ];
 
 export default function BottomNav() {
+  const native = Capacitor.isNativePlatform();
+
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+    <div
+      className={
+        native
+          ? 'pointer-events-none absolute inset-x-0 bottom-0 z-40 px-4 pb-3'
+          : 'pointer-events-none absolute inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]'
+      }
+    >
       <nav className="nav-grain pointer-events-auto flex items-center justify-around rounded-[28px] px-2 py-2 shadow-soft ring-1 ring-primary/20">
         {TABS.map((tab) => (
           <NavLink
