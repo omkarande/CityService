@@ -12,6 +12,7 @@ import type {
 } from './types';
 import { Capacitor } from '@capacitor/core';
 import { reportStore, reporterId } from '../lib/storage';
+import { forwardGeocode } from '../lib/nominatim';
 
 function apiBase(): string {
   const fromEnv = String(import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '');
@@ -50,14 +51,25 @@ let localities: Locality[] = [];
 let ready: Promise<void> | null = null;
 
 async function loadCatalog() {
-  const catalog = await request<{
-    categories: Category[];
-    platforms: Platform[];
-    localities: Locality[];
-  }>('/api/catalog');
-  categories = catalog.categories;
-  platforms = catalog.platforms;
-  localities = catalog.localities;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const catalog = await request<{
+        categories: Category[];
+        platforms: Platform[];
+        localities: Locality[];
+      }>('/api/catalog');
+      categories = catalog.categories;
+      platforms = catalog.platforms;
+      localities = catalog.localities;
+      return;
+    } catch (err) {
+      lastError = err;
+      // Render free tier can take ~30–40s to wake.
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+    }
+  }
+  throw lastError;
 }
 
 export const httpAdapter = {
@@ -197,7 +209,7 @@ export const httpAdapter = {
         boundingBox?: [number, number, number, number];
       }>(`/api/geocode?q=${encodeURIComponent(query)}`);
     } catch {
-      return null;
+      return forwardGeocode(query);
     }
   },
 

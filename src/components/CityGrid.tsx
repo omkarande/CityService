@@ -1,14 +1,27 @@
+import { Capacitor } from '@capacitor/core';
 import { Link } from 'react-router-dom';
 import { FEATURED_CITIES } from '../data/featuredCities';
 
 export default function CityGrid() {
+  const native = Capacitor.isNativePlatform();
+
   return (
-    <div className="grid grid-cols-3 gap-1.5">
+    <div
+      className={
+        native
+          ? 'grid min-h-0 flex-1 grid-cols-3 grid-rows-3 gap-1.5'
+          : 'grid grid-cols-3 gap-1.5'
+      }
+    >
       {FEATURED_CITIES.map((city) => (
         <Link
           key={city.id}
           to={`/city/${city.id}`}
-          className="group relative aspect-[3/2] overflow-hidden rounded-md shadow-soft transition-transform active:scale-95"
+          className={
+            native
+              ? 'group relative h-full min-h-0 overflow-hidden rounded-md shadow-soft transition-transform active:scale-95'
+              : 'group relative aspect-[3/2] overflow-hidden rounded-md shadow-soft transition-transform active:scale-95'
+          }
         >
           <img
             src={city.image}

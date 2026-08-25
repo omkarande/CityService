@@ -5,6 +5,29 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    --app-status-bar: 0px;
+  }
+
+  /* Android/iOS: keep UI below the camera and the system status bar. */
+  .app-safe-top {
+    padding-top: max(env(safe-area-inset-top, 0px), var(--app-status-bar, 0px));
+  }
+
+  /* Desktop browser only: the phone-frame chrome does not need status-bar inset. */
+  @media (min-width: 768px) {
+    html:not(.is-native-app) .app-safe-top {
+      padding-top: 0;
+    }
+  }
+
+  html.is-native-app,
+  html.is-native-app body,
+  html.is-native-app #root {
+    height: 100%;
+    min-height: 100%;
+    width: 100%;
+    margin: 0;
+    max-width: none;
   }
 
   body {
