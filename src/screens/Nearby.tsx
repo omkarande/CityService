@@ -1,44 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 import { api } from '../api/client';
 import type { MapPin } from '../api/types';
-import ClickToSearch from '../components/ClickToSearch';
+import GoogleMapCanvas from '../components/GoogleMapCanvas';
 import Icon from '../components/Icon';
 import MapZoomButtons from '../components/MapZoomButtons';
 import TopBar from '../components/TopBar';
 import { coverageColor } from '../lib/format';
+import { loadGoogleMaps } from '../lib/googleMaps';
 import { useVisibilityRefresh } from '../lib/useVisibilityRefresh';
 
-const PUNE_CENTER: [number, number] = [18.6, 73.85];
+const PUNE = { lat: 18.6, lng: 73.85 };
 const STREET_ZOOM = 16;
 const CLUSTER_MAX_ZOOM = 15;
-const OSM_MAX_ZOOM = 19;
-
-function FitToPins({ pins }: { pins: MapPin[] }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (pins.length === 0) return;
-    if (pins.length === 1) {
-      const { lat, lng } = pins[0].locality.center;
-      map.setView([lat, lng], STREET_ZOOM);
-      return;
-    }
-    map.fitBounds(
-      pins.map((p) => [p.locality.center.lat, p.locality.center.lng] as [number, number]),
-      { padding: [40, 40], maxZoom: CLUSTER_MAX_ZOOM },
-    );
-  }, [pins, map]);
-
-  return null;
-}
 
 export default function Nearby() {
   const navigate = useNavigate();
   const [pins, setPins] = useState<MapPin[]>([]);
   const [locating, setLocating] = useState(false);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const loadPins = useCallback(() => {
     api.mapPins().then(setPins);
@@ -52,58 +32,74 @@ export default function Nearby() {
     setLocating(false);
   }
 
+  useEffect(() => {
+    if (!map) return;
+    let cancelled = false;
+    const cleanups: Array<() => void> = [];
+
+    void loadGoogleMaps().then((maps) => {
+      if (cancelled) return;
+      const click = map.addListener('click', (event: google.maps.MapMouseEvent) => {
+        const lat = event.latLng?.lat();
+        const lng = event.latLng?.lng();
+        if (lat == null || lng == null) return;
+        goToNearest(lat, lng);
+      });
+      cleanups.push(() => click.remove());
+
+      const markers: google.maps.Marker[] = [];
+      if (pins.length === 0) {
+        map.setCenter(PUNE);
+        map.setZoom(STREET_ZOOM);
+      } else if (pins.length === 1) {
+        map.setCenter(pins[0].locality.center);
+        map.setZoom(STREET_ZOOM);
+      } else {
+        const bounds = new maps.LatLngBounds();
+        for (const pin of pins) bounds.extend(pin.locality.center);
+        map.fitBounds(bounds, 40);
+        maps.event.addListenerOnce(map, 'idle', () => {
+          if ((map.getZoom() ?? STREET_ZOOM) > CLUSTER_MAX_ZOOM) map.setZoom(CLUSTER_MAX_ZOOM);
+        });
+      }
+
+      for (const pin of pins) {
+        const ratio = pin.total === 0 ? 0 : pin.available / pin.total;
+        const marker = new maps.Marker({
+          map,
+          position: pin.locality.center,
+          title: pin.locality.name,
+          icon: {
+            path: maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: coverageColor(ratio),
+            fillOpacity: 0.9,
+            strokeColor: '#ffffff',
+            strokeWeight: 2,
+          },
+        });
+        marker.addListener('click', () => navigate(`/l/${pin.locality.id}`));
+        markers.push(marker);
+      }
+      cleanups.push(() => {
+        for (const marker of markers) marker.setMap(null);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      for (const cleanup of cleanups) cleanup();
+    };
+  }, [map, pins, navigate]);
+
   return (
     <>
       <TopBar title="Nearby" />
 
       <div className="flex flex-col gap-md pb-lg">
         <div className="relative h-[28rem] w-full overflow-hidden border-y border-outline-variant/40">
-          <MapContainer
-            center={PUNE_CENTER}
-            zoom={STREET_ZOOM}
-            minZoom={11}
-            maxZoom={OSM_MAX_ZOOM}
-            scrollWheelZoom
-            zoomControl={false}
-            style={{ height: '100%', width: '100%' }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              maxZoom={OSM_MAX_ZOOM}
-            />
-            <FitToPins pins={pins} />
-            <ClickToSearch onPick={goToNearest} />
-            <MapZoomButtons />
-
-            {pins.map((pin) => {
-              const ratio = pin.total === 0 ? 0 : pin.available / pin.total;
-              return (
-                <CircleMarker
-                  key={pin.locality.id}
-                  center={[pin.locality.center.lat, pin.locality.center.lng]}
-                  radius={8}
-                  bubblingMouseEvents={false}
-                  pathOptions={{
-                    color: '#ffffff',
-                    weight: 2,
-                    fillColor: coverageColor(ratio),
-                    fillOpacity: 0.9,
-                  }}
-                  eventHandlers={{
-                    click: (e) => {
-                      e.originalEvent.stopPropagation();
-                      navigate(`/l/${pin.locality.id}`);
-                    },
-                  }}
-                >
-                  <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-                    {pin.locality.name}
-                  </Tooltip>
-                </CircleMarker>
-              );
-            })}
-          </MapContainer>
+          <GoogleMapCanvas className="h-full w-full" center={PUNE} zoom={STREET_ZOOM} minZoom={5} onReady={setMap} />
+          <MapZoomButtons map={map} />
 
           {locating && (
             <div className="pointer-events-none absolute inset-0 z-[950] flex items-center justify-center bg-surface/40 backdrop-blur-[1px]">

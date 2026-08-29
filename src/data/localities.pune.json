@@ -12,8 +12,8 @@
   },
   {
     "id": "pimpri-chinchwad",
-    "name": "Pimpri-Chinchwad",
-    "aliases": ["PCMC", "Pimpri", "Chinchwad"],
+    "name": "Pimpri Chinchwad",
+    "aliases": ["PCMC", "Pimpri", "Chinchwad", "Pimpri-Chinchwad"],
     "kind": "suburb",
     "parentId": "pune",
     "pincode": "411018",

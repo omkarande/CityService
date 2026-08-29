@@ -126,16 +126,16 @@ describe('nearby live checks', () => {
     pincode: null,
     center: { lat: 0.0018, lng: 0 },
   };
-  const far: Locality = { ...vicky, id: 'far', name: 'Far Building', center: { lat: 0.022, lng: 0 } };
+  const far: Locality = { ...vicky, id: 'far', name: 'Far Building', center: { lat: 0.04, lng: 0 } };
   const byId = new Map([...BY_ID, [vicky.id, vicky], [far.id, far]]);
 
-  it('uses a probe within 2 km and names the distance', () => {
+  it('uses a probe within 3 km and names the distance', () => {
     const result = resolveOne(PLATFORM, TARGET, [record('vicky', { source: 'probe' })], byId, [], NOW);
     expect(result.resolvedFrom).toBe('nearby');
     expect(result.caveat).toMatch(/Real data checked \d+ m away \(Vicky Properties\)/);
   });
 
-  it('ignores a probe beyond 2 km and uses general area instead', () => {
+  it('ignores a probe beyond 3 km and uses general area instead', () => {
     const result = resolveOne(
       PLATFORM,
       TARGET,
@@ -161,7 +161,7 @@ describe('nearby live checks', () => {
     expect(result.resolvedAreaName).toBe('Vicky Properties');
   });
 
-  it('from a GPS point, a nearby seeded building counts within 2 km', () => {
+  it('from a GPS point, a nearby seeded building counts within 3 km', () => {
     const result = resolveOneFromPoint(
       PLATFORM,
       { lat: 0, lng: 0 },

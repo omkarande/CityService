@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   catalogAreaQueries,
   geocodeQueryVariants,
-  isLooseBoundingBox,
   pinLabelForQuery,
   placeContext,
   splitPlaceQuery,
@@ -24,13 +23,6 @@ describe('tokenOverlapScore', () => {
     const ravet = tokenOverlapScore(query, 'Ravet, Pimpri-Chinchwad, Pune, Maharashtra, India');
     const punawale = tokenOverlapScore(query, 'Green Vihar, Punawale, Pune, Maharashtra, India');
     expect(ravet).toBeGreaterThan(punawale);
-  });
-});
-
-describe('isLooseBoundingBox', () => {
-  it('treats a suburb-sized box as too wide to fit', () => {
-    expect(isLooseBoundingBox([18.6, 18.7, 73.7, 73.85])).toBe(true);
-    expect(isLooseBoundingBox([18.649, 18.651, 73.734, 73.736])).toBe(false);
   });
 });
 

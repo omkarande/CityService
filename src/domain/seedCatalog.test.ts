@@ -9,7 +9,7 @@ import {
 
 const PLACE: Locality = {
   id: 'pimpri-chinchwad',
-  name: 'Pimpri-Chinchwad',
+  name: 'Pimpri Chinchwad',
   aliases: [],
   kind: 'suburb',
   parentId: 'pune',

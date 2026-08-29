@@ -12,7 +12,7 @@
     "details": {
       "etaMinutes": [20, 45],
       "coverageStrength": "wide",
-      "note": "Verified live on swiggy.com for Chinchwad, Pimpri-Chinchwad — real restaurants listed (Pizza Hut 20-25 min, Barbeque Nation 35-45 min)."
+      "note": "Verified live on swiggy.com for Chinchwad, Pimpri Chinchwad. Real restaurants listed (Pizza Hut 20 to 25 min, Barbeque Nation 35 to 45 min)."
     }
   },
   {
@@ -25,7 +25,7 @@
     "details": {
       "etaMinutes": [6, 6],
       "coverageStrength": "wide",
-      "note": "Verified live on swiggy.com/instamart — storefront active, \"6 Mins Delivery\" shown for Chinchwad, Pimpri-Chinchwad."
+      "note": "Verified live on swiggy.com/instamart. Storefront active, \"6 Mins Delivery\" shown for Chinchwad, Pimpri Chinchwad."
     }
   },
   {
@@ -38,7 +38,7 @@
     "details": {
       "etaMinutes": [8, 8],
       "coverageStrength": "wide",
-      "note": "Verified live on zeptonow.com — \"Delivery in 8 Mins\", nearest dark store MIDC / Old Mumbai-Pune Highway."
+      "note": "Verified live on zeptonow.com. \"Delivery in 8 Mins\", nearest dark store MIDC / Old Mumbai Pune Highway."
     }
   },
   {
@@ -51,7 +51,7 @@
     "details": {
       "etaMinutes": [11, 11],
       "coverageStrength": "wide",
-      "note": "Verified live on blinkit.com — \"Delivery in 11 minutes\" for Chinchwad, Pimpri-Chinchwad."
+      "note": "Verified live on blinkit.com. \"Delivery in 11 minutes\" for Chinchwad, Pimpri Chinchwad."
     }
   },
   {
@@ -64,7 +64,7 @@
     "details": {
       "etaMinutes": [15, 18],
       "coverageStrength": "wide",
-      "note": "Verified live on zomato.com/pune/delivery-in-chinchwad — real restaurants listed (McDonald's 18 min, KFC 15 min)."
+      "note": "Verified live on zomato.com. Real restaurants listed (McDonald's 18 min, KFC 15 min)."
     }
   },
   {
@@ -76,7 +76,7 @@
     "evidence": { "positive": 1, "negative": 0 },
     "details": {
       "coverageStrength": "wide",
-      "note": "Verified live on amazon.in for pincode 411018 — accepted as a deliverable pincode; search results showed \"fast delivery\" items."
+      "note": "Verified live on amazon.in for pincode 411018. Accepted as a deliverable pincode; search results showed \"fast delivery\" items."
     }
   },
   {
@@ -88,7 +88,7 @@
     "evidence": { "positive": 1, "negative": 0 },
     "details": {
       "coverageStrength": "wide",
-      "note": "Verified live on flipkart.com — delivery address confirmed to H Block, MIDC, Pimpri Colony, Pimpri-Chinchwad, 411018. Flipkart Minutes (13-min quick commerce, a separate service not yet tracked here) was also live at this address."
+      "note": "Verified live on flipkart.com. Delivery address confirmed to H Block, MIDC, Pimpri Colony, Pimpri Chinchwad, 411018. Flipkart Minutes (13 min quick commerce, a separate service not yet tracked here) was also live at this address."
     }
   },
   {
@@ -101,7 +101,7 @@
     "details": {
       "etaMinutes": [11, 11],
       "coverageStrength": "wide",
-      "note": "Verified live on bigbasket.com — \"Delivery in 11 mins\" to 411019, Pimpri-Chinchwad."
+      "note": "Verified live on bigbasket.com. \"Delivery in 11 mins\" to 411019, Pimpri Chinchwad."
     }
   },
 
@@ -174,7 +174,7 @@
     "source": "seed-placeholder",
     "lastVerifiedAt": "2026-06-01T00:00:00Z",
     "evidence": { "positive": 15, "negative": 0 },
-    "details": { "coverageStrength": "wide", "note": "Standard delivery only — no same-day." }
+    "details": { "coverageStrength": "wide", "note": "Standard delivery only, no same day." }
   },
   {
     "platformId": "flipkart",
@@ -260,7 +260,7 @@
     "evidence": { "positive": 5, "negative": 4 },
     "details": {
       "coverageStrength": "edge",
-      "note": "Some societies only — check your exact pin before ordering."
+      "note": "Some societies only. Check your exact pin before ordering."
     }
   },
   {

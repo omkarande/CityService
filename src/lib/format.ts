@@ -27,7 +27,7 @@ export function relativeTime(iso: string | null): string {
 export function formatEta(eta?: [number, number]): string | null {
   if (!eta) return null;
   const [min, max] = eta;
-  return min === max ? `${min} min` : `${min}–${max} min`;
+  return min === max ? `${min} min` : `${min} to ${max} min`;
 }
 
 export function formatDistance(km: number): string {

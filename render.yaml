@@ -20,6 +20,8 @@ services:
           property: connectionString
       - key: PROBE_SECRET
         sync: false
+      - key: GOOGLE_MAPS_SERVER_KEY
+        sync: false
 
 databases:
   - name: cityservice-db

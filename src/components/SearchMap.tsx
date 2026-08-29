@@ -1,234 +1,74 @@
-import { useEffect, useState } from 'react';
-import L from 'leaflet';
-import { CircleMarker, MapContainer, Marker, TileLayer, Tooltip, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import type { LocalitySuggestion, MapPin } from '../api/types';
-import ClickToSearch from './ClickToSearch';
+import GoogleMapCanvas from './GoogleMapCanvas';
 import Icon from './Icon';
 import MapZoomButtons from './MapZoomButtons';
 import { coverageColor, formatDistance } from '../lib/format';
-import { isLooseBoundingBox } from '../lib/nominatim';
+import { loadGoogleMaps } from '../lib/googleMaps';
 import type { PlaceHit } from '../lib/nominatim';
 
-const PUNE_CENTER: [number, number] = [18.6, 73.85];
-const MIN_ZOOM = 5;
-
-/** Street-level; OSM raster tiles go to 19. */
+const PUNE = { lat: 18.6, lng: 73.85 };
 const STREET_ZOOM = 17;
 const CLUSTER_MAX_ZOOM = 16;
-const OSM_MAX_ZOOM = 19;
 
-/** A drag-anywhere pin, drawn with the app's own icon font — no image assets to bundle. */
-const pickIcon = L.divIcon({
-  className: '',
-  html:
-    '<div style="width:30px;height:30px;border-radius:9999px;background:#000;display:flex;' +
-    'align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid #fff;">' +
-    '<span class="material-symbols-outlined" style="color:#fff;font-size:17px;">location_on</span></div>',
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
-});
-
-function nearbyLabelIcon(name: string) {
-  const safe = name
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-  return L.divIcon({
-    className: '',
-    html:
-      '<div style="transform:translate(-50%,-100%);white-space:nowrap;background:#fff;color:#1a1a1a;' +
-      'font:600 11px/1.2 system-ui,sans-serif;padding:3px 7px;border-radius:999px;box-shadow:0 1px 4px rgba(0,0,0,.25);' +
-      `border:1px solid rgba(0,0,0,.08);">${safe}</div>`,
-    iconSize: [0, 0],
-    iconAnchor: [0, 0],
-  });
+function hasCoords(place: PlaceHit): place is PlaceHit & { lat: number; lng: number } {
+  return place.lat != null && place.lng != null;
 }
-function Recenter({
-  position,
-  boundingBox,
-}: {
-  position: [number, number];
-  boundingBox?: [number, number, number, number];
-}) {
-  const map = useMap();
-  const boxKey = boundingBox?.join(',') ?? '';
-  useEffect(() => {
-    if (boundingBox && !isLooseBoundingBox(boundingBox)) {
-      const [south, north, west, east] = boundingBox;
-      map.fitBounds(
-        [
-          [south, west],
-          [north, east],
-        ],
-        { padding: [28, 28], maxZoom: STREET_ZOOM },
-      );
-      return;
+
+function attachLabel(
+  maps: typeof google.maps,
+  map: google.maps.Map,
+  position: google.maps.LatLngLiteral,
+  name: string,
+  onClick: () => void,
+): google.maps.OverlayView {
+  class LabelOverlay extends maps.OverlayView {
+    div: HTMLDivElement | null = null;
+    onAdd() {
+      const div = document.createElement('div');
+      div.textContent = name;
+      div.style.cssText =
+        'position:absolute;transform:translate(-50%,-100%);white-space:nowrap;background:#fff;color:#1a1a1a;font:600 11px/1.2 system-ui,sans-serif;padding:3px 7px;border-radius:999px;box-shadow:0 1px 4px rgba(0,0,0,.25);border:1px solid rgba(0,0,0,.08);cursor:pointer;';
+      div.addEventListener('click', (event) => {
+        event.stopPropagation();
+        onClick();
+      });
+      this.div = div;
+      this.getPanes()?.overlayMouseTarget.appendChild(div);
     }
-    map.setView(position, STREET_ZOOM);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position[0], position[1], boxKey, map]);
-  return null;
-}
-
-/** Re-frames the map around whatever the search currently matches. Runs once per new set of matches, not on every drag. */
-function FitToSuggestions({ suggestions }: { suggestions: LocalitySuggestion[] }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (suggestions.length === 0) return;
-    if (suggestions.length === 1) {
-      const { lat, lng } = suggestions[0].locality.center;
-      map.setView([lat, lng], STREET_ZOOM);
-      return;
+    draw() {
+      const point = this.getProjection()?.fromLatLngToDivPixel(new maps.LatLng(position.lat, position.lng));
+      if (!point || !this.div) return;
+      this.div.style.left = `${point.x}px`;
+      this.div.style.top = `${point.y}px`;
     }
-    const bounds = suggestions.map((s) => [s.locality.center.lat, s.locality.center.lng] as [number, number]);
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: CLUSTER_MAX_ZOOM });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [suggestions, map]);
-
-  return null;
-}
-
-function InvalidateOnMount() {
-  const map = useMap();
-  useEffect(() => {
-    const timer = window.setTimeout(() => map.invalidateSize(), 80);
-    return () => window.clearTimeout(timer);
-  }, [map]);
-  return null;
-}
-
-interface MapLayersProps {
-  suggestions: LocalitySuggestion[];
-  pinsById: Map<string, MapPin>;
-  picked: [number, number] | null;
-  focus: [number, number];
-  boundingBox?: [number, number, number, number];
-  followGeocode: boolean;
-  highlightId: string | null;
-  nearbyPlaces: PlaceHit[];
-  onPickLocality: (localityId: string) => void;
-  onMovePin: (lat: number, lng: number) => void;
-  onNearbyPick?: (place: PlaceHit) => void;
-}
-
-/** The pieces shared between the compact preview and the expanded picker. */
-function MapLayers({
-  suggestions,
-  pinsById,
-  picked,
-  focus,
-  boundingBox,
-  followGeocode,
-  highlightId,
-  nearbyPlaces,
-  onPickLocality,
-  onMovePin,
-  onNearbyPick,
-}: MapLayersProps) {
-  const labelPins = suggestions.length <= 6;
-
-  return (
-    <>
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" maxZoom={OSM_MAX_ZOOM} />
-      {followGeocode ? (
-        <Recenter position={focus} boundingBox={boundingBox} />
-      ) : suggestions.length > 0 ? (
-        <FitToSuggestions suggestions={suggestions} />
-      ) : (
-        <Recenter position={focus} />
-      )}
-      <ClickToSearch onPick={onMovePin} />
-
-      {suggestions.map((suggestion) => {
-        const pin = pinsById.get(suggestion.locality.id);
-        const ratio = pin && pin.total > 0 ? pin.available / pin.total : 0;
-        const highlighted = suggestion.locality.id === highlightId;
-        return (
-          <CircleMarker
-            key={suggestion.locality.id}
-            center={[suggestion.locality.center.lat, suggestion.locality.center.lng]}
-            radius={highlighted ? 11 : 8}
-            pathOptions={{
-              color: highlighted ? '#003d9b' : '#ffffff',
-              weight: highlighted ? 3 : 2,
-              fillColor: coverageColor(ratio),
-              fillOpacity: 0.95,
-            }}
-            eventHandlers={{
-              click: (e) => {
-                L.DomEvent.stopPropagation(e);
-                onPickLocality(suggestion.locality.id);
-              },
-            }}
-          >
-            <Tooltip direction="top" offset={[0, -10]} permanent={labelPins} opacity={1}>
-              {suggestion.locality.name}
-            </Tooltip>
-          </CircleMarker>
-        );
-      })}
-
-      {nearbyPlaces.map((place) => (
-        <Marker
-          key={place.id}
-          position={[place.lat, place.lng]}
-          icon={nearbyLabelIcon(place.name)}
-          zIndexOffset={200}
-          eventHandlers={{
-            click: (e) => {
-              L.DomEvent.stopPropagation(e);
-              onNearbyPick?.(place);
-            },
-          }}
-        />
-      ))}
-
-      {picked && (
-        <Marker
-          position={picked}
-          icon={pickIcon}
-          draggable
-          zIndexOffset={800}
-          eventHandlers={{
-            dragend: (e) => {
-              const { lat, lng } = e.target.getLatLng();
-              onMovePin(lat, lng);
-            },
-          }}
-        />
-      )}
-    </>
-  );
+    onRemove() {
+      this.div?.remove();
+      this.div = null;
+    }
+  }
+  const overlay = new LabelOverlay();
+  overlay.setMap(map);
+  return overlay;
 }
 
 interface SearchMapProps {
   suggestions: LocalitySuggestion[];
   pinsById: Map<string, MapPin>;
-  /** Passed through to `/at?q=` so Results keep the searched building name. */
   queryName?: string;
-  /** Center here from geocode (any India place), even when catalog rows also match. */
-  initialCenter?: { lat: number; lng: number; boundingBox?: [number, number, number, number] } | null;
+  initialCenter?: { lat: number; lng: number } | null;
   pinLabel?: string;
   nearbyPlaces?: PlaceHit[];
   onNearbyPick?: (place: PlaceHit) => void;
   showCompactConfirm?: boolean;
   confirmLabel?: string;
-  /** Shorter map while the keyboard is open so the confirm button stays on screen. */
   compact?: boolean;
-  /** If set, confirm calls this instead of navigating (used by /probe). */
   onConfirm?: (lat: number, lng: number) => void;
   onPinChange?: (lat: number, lng: number) => void;
 }
 
-/**
- * Compact preview by default — tap a labelled pin to jump straight there, or
- * drop/drag the black pin and confirm for an unknown building.
- */
 export default function SearchMap({
   suggestions,
   pinsById,
@@ -245,37 +85,28 @@ export default function SearchMap({
 }: SearchMapProps) {
   const navigate = useNavigate();
   const first = suggestions[0]?.locality.center;
-  const followGeocode = Boolean(initialCenter);
-  const focus: [number, number] = initialCenter
-    ? [initialCenter.lat, initialCenter.lng]
-    : first
-      ? [first.lat, first.lng]
-      : PUNE_CENTER;
+  const focus = initialCenter ?? (first ? { lat: first.lat, lng: first.lng } : PUNE);
 
-  const [picked, setPicked] = useState<[number, number]>(focus);
+  const [picked, setPicked] = useState(focus);
   const [expanded, setExpanded] = useState(false);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [expandedMap, setExpandedMap] = useState<google.maps.Map | null>(null);
   const [nearest, setNearest] = useState<{ id: string; name: string; distanceKm: number } | null>(null);
 
-  useEffect(() => {
-    setPicked(
-      initialCenter
-        ? [initialCenter.lat, initialCenter.lng]
-        : first
-          ? [first.lat, first.lng]
-          : PUNE_CENTER,
-    );
-  }, [first?.lat, first?.lng, initialCenter?.lat, initialCenter?.lng]);
+  const onPinChangeRef = useRef(onPinChange);
+  onPinChangeRef.current = onPinChange;
+  const onNearbyPickRef = useRef(onNearbyPick);
+  onNearbyPickRef.current = onNearbyPick;
 
-  function movePin(lat: number, lng: number) {
-    setPicked([lat, lng]);
-    onPinChange?.(lat, lng);
-  }
+  useEffect(() => {
+    setPicked(initialCenter ?? (first ? { lat: first.lat, lng: first.lng } : PUNE));
+  }, [first?.lat, first?.lng, initialCenter?.lat, initialCenter?.lng]);
 
   useEffect(() => {
     let cancelled = false;
     const timer = setTimeout(() => {
       api
-        .nearest(picked[0], picked[1])
+        .nearest(picked.lat, picked.lng)
         .then((match) => {
           if (cancelled) return;
           if (!match) {
@@ -294,56 +125,127 @@ export default function SearchMap({
     };
   }, [picked]);
 
-  function goToLocality(localityId: string) {
-    navigate(`/l/${localityId}`);
-  }
+  useEffect(() => {
+    const mapsToDraw = [map, expandedMap].filter(Boolean) as google.maps.Map[];
+    if (mapsToDraw.length === 0) return;
+    let cancelled = false;
+    const cleanups: Array<() => void> = [];
+
+    void loadGoogleMaps().then((maps) => {
+      if (cancelled) return;
+      for (const gmap of mapsToDraw) {
+        gmap.setCenter(picked);
+        gmap.setZoom(STREET_ZOOM);
+
+        const pin = new maps.Marker({
+          map: gmap,
+          position: picked,
+          draggable: true,
+          zIndex: 800,
+          icon: {
+            path: maps.SymbolPath.CIRCLE,
+            scale: 14,
+            fillColor: '#000000',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2,
+          },
+        });
+        const applyPin = (lat: number, lng: number) => {
+          setPicked({ lat, lng });
+          onPinChangeRef.current?.(lat, lng);
+        };
+        const drag = pin.addListener('dragend', () => {
+          const pos = pin.getPosition();
+          if (!pos) return;
+          applyPin(pos.lat(), pos.lng());
+        });
+        const click = gmap.addListener('click', (event: google.maps.MapMouseEvent) => {
+          const lat = event.latLng?.lat();
+          const lng = event.latLng?.lng();
+          if (lat == null || lng == null) return;
+          applyPin(lat, lng);
+        });
+
+        const extras: Array<google.maps.Marker | google.maps.OverlayView> = [];
+        for (const suggestion of suggestions) {
+          const pinInfo = pinsById.get(suggestion.locality.id);
+          const ratio = pinInfo && pinInfo.total > 0 ? pinInfo.available / pinInfo.total : 0;
+          const highlighted = suggestion.locality.id === nearest?.id;
+          const marker = new maps.Marker({
+            map: gmap,
+            position: suggestion.locality.center,
+            title: suggestion.locality.name,
+            zIndex: highlighted ? 400 : 200,
+            icon: {
+              path: maps.SymbolPath.CIRCLE,
+              scale: highlighted ? 11 : 8,
+              fillColor: coverageColor(ratio),
+              fillOpacity: 0.95,
+              strokeColor: highlighted ? '#003d9b' : '#ffffff',
+              strokeWeight: highlighted ? 3 : 2,
+            },
+          });
+          marker.addListener('click', () => navigate(`/l/${suggestion.locality.id}`));
+          extras.push(marker);
+        }
+
+        if (suggestions.length > 1 && !initialCenter) {
+          const bounds = new maps.LatLngBounds();
+          for (const suggestion of suggestions) bounds.extend(suggestion.locality.center);
+          gmap.fitBounds(bounds, 40);
+          const listener = maps.event.addListenerOnce(gmap, 'idle', () => {
+            if ((gmap.getZoom() ?? STREET_ZOOM) > CLUSTER_MAX_ZOOM) gmap.setZoom(CLUSTER_MAX_ZOOM);
+          });
+          cleanups.push(() => listener.remove());
+        }
+
+        for (const place of nearbyPlaces.filter(hasCoords)) {
+          extras.push(
+            attachLabel(maps, gmap, { lat: place.lat, lng: place.lng }, place.name, () => {
+              onNearbyPickRef.current?.(place);
+            }),
+          );
+        }
+
+        cleanups.push(() => {
+          drag.remove();
+          click.remove();
+          pin.setMap(null);
+          for (const extra of extras) extra.setMap(null);
+        });
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      for (const cleanup of cleanups) cleanup();
+    };
+  }, [map, expandedMap, picked.lat, picked.lng, nearbyPlaces, suggestions, pinsById, nearest?.id, initialCenter, navigate]);
 
   function confirmPick() {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     if (onConfirm) {
-      onConfirm(picked[0], picked[1]);
+      onConfirm(picked.lat, picked.lng);
       return;
     }
-    const qs = new URLSearchParams({ lat: String(picked[0]), lng: String(picked[1]) });
+    const qs = new URLSearchParams({ lat: String(picked.lat), lng: String(picked.lng) });
     const name = queryName?.trim();
     if (name) qs.set('q', name);
     navigate(`/at?${qs.toString()}`);
   }
 
-  const layerProps = {
-    suggestions,
-    pinsById,
-    picked,
-    focus,
-    boundingBox: initialCenter?.boundingBox,
-    followGeocode,
-    highlightId: nearest?.id ?? null,
-    nearbyPlaces,
-    onMovePin: movePin,
-    onNearbyPick,
-  };
-
   return (
     <>
       <div className="flex flex-col gap-sm">
-        <div
-          className={`relative w-full overflow-hidden rounded-2xl shadow-soft ${compact ? 'h-40' : 'h-64'}`}
-        >
-          <MapContainer
+        <div className={`relative w-full overflow-hidden rounded-2xl shadow-soft ${compact ? 'h-40' : 'h-64'}`}>
+          <GoogleMapCanvas
+            className="h-full w-full"
             center={focus}
             zoom={STREET_ZOOM}
-            minZoom={MIN_ZOOM}
-            maxZoom={OSM_MAX_ZOOM}
-            scrollWheelZoom
-            zoomControl={false}
-            attributionControl={false}
-            keyboard={false}
-            style={{ height: '100%', width: '100%' }}
-          >
-            <MapLayers {...layerProps} onPickLocality={goToLocality} />
-            <MapZoomButtons className="absolute right-3 bottom-14" />
-          </MapContainer>
-
+            onReady={setMap}
+          />
+          <MapZoomButtons map={map} className="absolute right-3 bottom-14" />
           <button
             type="button"
             onClick={() => setExpanded(true)}
@@ -352,7 +254,6 @@ export default function SearchMap({
             <Icon name="open_in_full" size={14} />
             Expand
           </button>
-
           {(pinLabel || nearest) && (
             <p className="pointer-events-none absolute inset-x-3 bottom-3 z-[1000] truncate rounded-full bg-white/95 px-3 py-1.5 text-center text-label-sm font-semibold text-on-surface shadow-md">
               {pinLabel || nearest?.name}
@@ -384,37 +285,20 @@ export default function SearchMap({
             <button
               type="button"
               aria-label="Close map"
-              onClick={() => setExpanded(false)}
+              onClick={() => {
+                setExpandedMap(null);
+                setExpanded(false);
+              }}
               className="-ml-2 rounded-full p-2 text-primary transition-colors hover:bg-surface-container-highest active:scale-95"
             >
               <Icon name="close" />
             </button>
             <h2 className="text-body-lg font-bold text-on-surface">Zoom and drop the pin on your spot</h2>
           </div>
-
           <div className="relative flex-1">
-            <MapContainer
-              center={picked}
-              zoom={STREET_ZOOM}
-              minZoom={MIN_ZOOM}
-              maxZoom={OSM_MAX_ZOOM}
-              scrollWheelZoom
-              zoomControl={false}
-              attributionControl={false}
-              style={{ height: '100%', width: '100%' }}
-            >
-              <InvalidateOnMount />
-              <MapLayers
-                {...layerProps}
-                onPickLocality={(localityId) => {
-                  setExpanded(false);
-                  goToLocality(localityId);
-                }}
-              />
-              <MapZoomButtons />
-            </MapContainer>
+            <GoogleMapCanvas className="h-full w-full" center={picked} zoom={STREET_ZOOM} onReady={setExpandedMap} />
+            <MapZoomButtons map={expandedMap} />
           </div>
-
           <div className="shrink-0 border-t border-outline-variant/30 p-margin-mobile">
             {(pinLabel || nearest) && (
               <p className="mb-2 text-center text-body-md text-on-surface-variant">
@@ -436,6 +320,7 @@ export default function SearchMap({
               type="button"
               onClick={() => {
                 setExpanded(false);
+                setExpandedMap(null);
                 confirmPick();
               }}
               className="flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 text-body-lg font-bold text-on-primary shadow-soft active:scale-[0.99]"

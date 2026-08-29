@@ -12,7 +12,7 @@ import type {
 } from './types';
 import { Capacitor } from '@capacitor/core';
 import { reportStore, reporterId } from '../lib/storage';
-import { forwardGeocode } from '../lib/nominatim';
+import type { GeocodeHit, PlaceHit } from '../lib/nominatim';
 
 function apiBase(): string {
   const fromEnv = String(import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '');
@@ -198,18 +198,47 @@ export const httpAdapter = {
     return request(`/api/reverse?lat=${encodeURIComponent(String(lat))}&lng=${encodeURIComponent(String(lng))}`);
   },
 
-  async geocode(query: string) {
+  async geocode(query: string): Promise<GeocodeHit | null> {
     try {
-      return await request<{
-        lat: number;
-        lng: number;
-        name: string;
-        city: string;
-        state: string;
-        boundingBox?: [number, number, number, number];
-      }>(`/api/geocode?q=${encodeURIComponent(query)}`);
-    } catch {
-      return forwardGeocode(query);
+      return await request<GeocodeHit>(`/api/geocode?q=${encodeURIComponent(query)}`);
+    } catch (err) {
+      console.warn('[places] geocode', err);
+      return null;
+    }
+  },
+
+  async searchPlaces(query: string, sessionToken?: string): Promise<PlaceHit[]> {
+    try {
+      return await request<PlaceHit[]>('/api/places/autocomplete', {
+        method: 'POST',
+        body: JSON.stringify({ input: query, sessionToken }),
+      });
+    } catch (err) {
+      console.warn('[places] autocomplete', err);
+      return [];
+    }
+  },
+
+  async placeDetails(placeId: string, sessionToken?: string): Promise<GeocodeHit | null> {
+    try {
+      const qs = new URLSearchParams({ id: placeId });
+      if (sessionToken) qs.set('sessionToken', sessionToken);
+      return await request<GeocodeHit>(`/api/places/details?${qs.toString()}`);
+    } catch (err) {
+      console.warn('[places] details', err);
+      return null;
+    }
+  },
+
+  async nearbyPlaces(lat: number, lng: number): Promise<PlaceHit[]> {
+    try {
+      return await request<PlaceHit[]>('/api/places/nearby', {
+        method: 'POST',
+        body: JSON.stringify({ lat, lng }),
+      });
+    } catch (err) {
+      console.warn('[places] nearby', err);
+      return [];
     }
   },
 

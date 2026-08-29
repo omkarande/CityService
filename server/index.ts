@@ -8,7 +8,13 @@ import { EXACT_KM, haversineKm } from '../src/domain/geo.ts';
 import { buildContext, searchLocalities } from '../src/domain/search.ts';
 import type { Coverage, CoverageStatus, Locality, SourceKind } from '../src/api/types.ts';
 import { createStore } from './store.ts';
-import { forwardGeocode, reverseGeocode } from '../src/lib/nominatim.ts';
+import {
+  googleAutocomplete,
+  googleForwardGeocode,
+  googleNearbyPlaces,
+  googlePlaceDetails,
+  googleReverseGeocode,
+} from '../src/lib/googlePlaces.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
@@ -119,7 +125,7 @@ async function findOrCreatePlace(
   }
   if (nearest) return nearest;
 
-  const geo = await reverseGeocode(lat, lng);
+  const geo = await googleReverseGeocode(lat, lng);
   const place: Locality = {
     id: gpsPlaceId(lat, lng),
     name: name?.trim() || geo.name,
@@ -314,17 +320,64 @@ async function main() {
       res.status(400).json({ error: 'lat and lng are required' });
       return;
     }
-    res.json(await reverseGeocode(lat, lng));
+    try {
+      res.json(await googleReverseGeocode(lat, lng));
+    } catch (err) {
+      res.status(503).json({ error: err instanceof Error ? err.message : 'Reverse geocode failed' });
+    }
+  });
+
+  app.post('/api/places/autocomplete', async (req, res) => {
+    try {
+      const input = String(req.body?.input ?? req.query.q ?? '').trim();
+      const sessionToken = String(req.body?.sessionToken ?? req.query.sessionToken ?? '');
+      res.json(await googleAutocomplete(input, sessionToken || undefined));
+    } catch (err) {
+      res.status(503).json({ error: err instanceof Error ? err.message : 'Places autocomplete failed' });
+    }
+  });
+
+  app.get('/api/places/details', async (req, res) => {
+    try {
+      const id = String(req.query.id ?? '').trim();
+      const sessionToken = String(req.query.sessionToken ?? '');
+      const hit = await googlePlaceDetails(id, sessionToken || undefined);
+      if (!hit) {
+        res.status(404).json({ error: 'No match' });
+        return;
+      }
+      res.json(hit);
+    } catch (err) {
+      res.status(503).json({ error: err instanceof Error ? err.message : 'Place details failed' });
+    }
+  });
+
+  app.post('/api/places/nearby', async (req, res) => {
+    try {
+      const lat = Number(req.body?.lat ?? req.query.lat);
+      const lng = Number(req.body?.lng ?? req.query.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        res.status(400).json({ error: 'lat and lng are required' });
+        return;
+      }
+      res.json(await googleNearbyPlaces(lat, lng));
+    } catch (err) {
+      res.status(503).json({ error: err instanceof Error ? err.message : 'Nearby search failed' });
+    }
   });
 
   app.get('/api/geocode', async (req, res) => {
-    const q = String(req.query.q ?? '').trim();
-    const hit = await forwardGeocode(q);
-    if (!hit) {
-      res.status(404).json({ error: 'No match' });
-      return;
+    try {
+      const q = String(req.query.q ?? '').trim();
+      const hit = await googleForwardGeocode(q);
+      if (!hit) {
+        res.status(404).json({ error: 'No match' });
+        return;
+      }
+      res.json(hit);
+    } catch (err) {
+      res.status(503).json({ error: err instanceof Error ? err.message : 'Geocode failed' });
     }
-    res.json(hit);
   });
 
   app.get('/api/at', async (req, res) => {
@@ -341,7 +394,12 @@ async function main() {
       store.coverage(),
     ]);
     const byId = new Map(localities.map((l) => [l.id, l]));
-    const geo = await reverseGeocode(lat, lng);
+    let geo = { name: 'Pinned location', city: '', state: '' };
+    try {
+      geo = await googleReverseGeocode(lat, lng);
+    } catch {
+      /* Coverage still works if reverse geocode is down. */
+    }
     const { locality, breadcrumb } = describeAtPlace({ lat, lng }, geo, q || undefined);
     res.json({
       locality,

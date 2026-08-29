@@ -4,7 +4,7 @@ import type { Locality } from '../api/types';
 export const EXACT_KM = 0.15;
 
 /** Nearby live checks may be borrowed up to this far. */
-export const NEARBY_KM = 2;
+export const NEARBY_KM = 3;
 
 /** General suburb/city data is only used inside this radius. */
 export const GENERAL_KM = 15;

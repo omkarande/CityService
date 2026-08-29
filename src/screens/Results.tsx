@@ -109,7 +109,7 @@ export default function Results() {
         <header>
           <div className="flex items-center justify-between gap-2">
             <h2 className="min-w-0 truncate text-headline-lg-mobile font-headline-lg text-on-surface">
-              {area ? area.locality.name : '—'}
+              {area ? area.locality.name : 'This place'}
             </h2>
             {area && (
               <span className="shrink-0">
