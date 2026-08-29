@@ -23,7 +23,7 @@ import {
   scoreConfidence,
   tierFor,
 } from './confidence';
-import { EXACT_KM, GENERAL_KM, NEARBY_KM, formatOffset, haversineKm } from './geo';
+import { EXACT_KM, GENERAL_KM, NEARBY_KM, SHOW_ORIGIN_KM, formatOffset, haversineKm } from './geo';
 
 /** Sort order on the results list: useful answers first, "no idea" last. */
 const STATUS_RANK: Record<CoverageStatus, number> = {
@@ -161,7 +161,7 @@ export function pickRecord(
 
 /**
  * Answer from a GPS / geocoded point that may not be a saved locality.
- *   1. specific DB place within 150 m → this place
+ *   1. specific DB place within 150 m → this place (confidence); still name it if the pin is offset
  *   2. specific DB place within 3 km → nearby real data
  *   3. suburb/city record within 15 km → general area
  */
@@ -272,6 +272,10 @@ function buildCaveat(
 ): string | null {
   if (path === 'none') return 'No coverage data for this area yet.';
   if (disputed) return 'Recent reports disagree with this status.';
+  const borrowed = areaName && distanceKm != null && distanceKm >= SHOW_ORIGIN_KM;
+  if ((path === 'nearby' || path === 'exact') && borrowed) {
+    return `Real data checked ${formatOffset(distanceKm)} away (${areaName})`;
+  }
   if (path === 'nearby' && areaName) {
     return `Real data checked ${formatOffset(distanceKm ?? 0)} away (${areaName})`;
   }
@@ -327,6 +331,8 @@ function finalize(
   const disputed = isDisputed(merged.evidence);
   const stale = daysBetween(merged.lastVerifiedAt, now) > HALF_LIFE_DAYS[platform.categoryId];
 
+  const borrowed = distanceKm != null && distanceKm >= SHOW_ORIGIN_KM;
+
   return {
     platform,
     status: record.status,
@@ -335,7 +341,7 @@ function finalize(
     resolvedFrom: effectivePath,
     resolvedAreaName: effectiveArea?.name ?? null,
     resolvedAreaId: effectiveArea?.id ?? null,
-    distanceKm: effectivePath === 'exact' ? 0 : distanceKm,
+    distanceKm: effectivePath === 'exact' && !borrowed ? 0 : distanceKm,
     lastVerifiedAt: merged.lastVerifiedAt,
     source: merged.source,
     details: record.details,

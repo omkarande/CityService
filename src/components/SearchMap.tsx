@@ -245,7 +245,7 @@ export default function SearchMap({
             zoom={STREET_ZOOM}
             onReady={setMap}
           />
-          <MapZoomButtons map={map} className="absolute right-3 bottom-14" />
+          <MapZoomButtons map={map} />
           <button
             type="button"
             onClick={() => setExpanded(true)}
@@ -254,17 +254,6 @@ export default function SearchMap({
             <Icon name="open_in_full" size={14} />
             Expand
           </button>
-          {(pinLabel || nearest) && (
-            <p className="pointer-events-none absolute inset-x-3 bottom-3 z-[1000] truncate rounded-full bg-white/95 px-3 py-1.5 text-center text-label-sm font-semibold text-on-surface shadow-md">
-              {pinLabel || nearest?.name}
-              {!pinLabel && nearest && (
-                <span className="font-normal text-on-surface-variant">
-                  {' '}
-                  · {formatDistance(nearest.distanceKm)}
-                </span>
-              )}
-            </p>
-          )}
         </div>
 
         {showCompactConfirm && (

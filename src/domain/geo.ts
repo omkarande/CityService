@@ -1,7 +1,10 @@
 import type { Locality } from '../api/types';
 
-/** Treat a pin as “this place”. */
+/** Treat a pin as “this place” for confidence (same building). */
 export const EXACT_KM = 0.15;
+
+/** Hide the “checked Xm away” line only when the pin is this close to that place. */
+export const SHOW_ORIGIN_KM = 0.02;
 
 /** Nearby live checks may be borrowed up to this far. */
 export const NEARBY_KM = 3;

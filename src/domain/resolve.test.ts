@@ -174,6 +174,33 @@ describe('nearby live checks', () => {
     expect(result.resolvedAreaName).toBe('Vicky Properties');
     expect(result.caveat).toMatch(/Real data checked/);
   });
+
+  it('from a GPS point within 150 m still names the checked place when the pin is offset', () => {
+    const result = resolveOneFromPoint(
+      PLATFORM,
+      { lat: 0.0009, lng: 0 },
+      [record('vicky', { source: 'probe' })],
+      byId,
+      [],
+      NOW,
+    );
+    expect(result.resolvedFrom).toBe('exact');
+    expect(result.resolvedAreaName).toBe('Vicky Properties');
+    expect(result.caveat).toMatch(/Real data checked \d+ m away \(Vicky Properties\)/);
+  });
+
+  it('hides the offset line when the pin is on the checked place', () => {
+    const result = resolveOneFromPoint(
+      PLATFORM,
+      vicky.center,
+      [record('vicky', { source: 'probe' })],
+      byId,
+      [],
+      NOW,
+    );
+    expect(result.resolvedFrom).toBe('exact');
+    expect(result.caveat).toBeNull();
+  });
 });
 
 describe('describeAtPlace', () => {
