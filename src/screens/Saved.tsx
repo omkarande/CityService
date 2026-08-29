@@ -27,7 +27,7 @@ export default function Saved() {
           <EmptyState
             icon="bookmark_border"
             title="Nothing saved yet"
-            body="Tap the bookmark on any locality to keep it here — handy when you're comparing areas to move to."
+            body="Tap the bookmark on any locality to keep it here. Handy when you're comparing areas to move to."
             action={
               <Link
                 to="/"

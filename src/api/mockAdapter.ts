@@ -11,7 +11,7 @@ import { ancestorChain, describeAtPlace, resolveArea, resolveAreaFromPoint, reso
 import { EXACT_KM, haversineKm } from '../domain/geo';
 import { buildContext, searchLocalities } from '../domain/search';
 import { gpsPlaceStore, mergeCoverage, probeStore, reportStore, reporterId } from '../lib/storage';
-import { forwardGeocode, reverseGeocode } from '../lib/nominatim';
+import type { GeocodeHit, PlaceHit } from '../lib/nominatim';
 import type {
   AreaResult,
   Category,
@@ -264,15 +264,34 @@ export const mockAdapter = {
   },
 
   async reverse(lat: number, lng: number): Promise<{ name: string; city: string; state: string }> {
-    return reverseGeocode(lat, lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return { name: 'Pinned location', city: 'Pune', state: 'Maharashtra' };
+    }
+    return { name: 'Pinned location', city: 'Pune', state: 'Maharashtra' };
   },
 
-  async geocode(query: string) {
-    return forwardGeocode(query);
+  async geocode(query: string): Promise<GeocodeHit | null> {
+    if (!query.trim()) return null;
+    return null;
+  },
+
+  async searchPlaces(query: string, sessionToken?: string): Promise<PlaceHit[]> {
+    if (!query.trim() || sessionToken === '') return [];
+    return [];
+  },
+
+  async placeDetails(placeId: string, sessionToken?: string): Promise<GeocodeHit | null> {
+    if (!placeId || sessionToken === '') return null;
+    return null;
+  },
+
+  async nearbyPlaces(lat: number, lng: number): Promise<PlaceHit[]> {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return [];
+    return [];
   },
 
   async getAt(lat: number, lng: number, q?: string): Promise<AreaResult> {
-    const geo = await reverseGeocode(lat, lng);
+    const geo = await mockAdapter.reverse(lat, lng);
     const { locality, breadcrumb } = describeAtPlace({ lat, lng }, geo, q);
     return latency({
       locality,
@@ -294,7 +313,7 @@ export const mockAdapter = {
       }
     }
     if (nearest) return nearest;
-    const geo = await reverseGeocode(input.lat, input.lng);
+    const geo = await mockAdapter.reverse(input.lat, input.lng);
     const place: Locality = {
       id: gpsPlaceId(input.lat, input.lng),
       name: input.name?.trim() || geo.name,

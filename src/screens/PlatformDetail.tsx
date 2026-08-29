@@ -29,12 +29,12 @@ const SOURCE_LABEL: Record<SourceKind, string> = {
   probe: 'Automated availability check',
   seed: 'Manually verified entry',
   'user-report': 'User reports',
-  'seed-placeholder': 'Placeholder demo data — not verified',
+  'seed-placeholder': 'Placeholder demo data, not verified',
 };
 
 const PATH_EXPLANATION: Record<ResolvedCoverage['resolvedFrom'], string> = {
   exact: 'Recorded for this exact locality.',
-  nearby: 'A live check within 2 km of this place.',
+  nearby: 'A live check within 3 km of this place.',
   pincode: 'Borrowed from a neighbouring area on the same pincode.',
   polygon: 'Derived from the coverage area this location falls inside.',
   city: 'General area data, not a live check at this pin.',
@@ -143,7 +143,7 @@ export default function PlatformDetail() {
     <>
       <TopBar back backLabel="Back to results" />
 
-      <div className="animate-fade-up flex flex-col gap-md px-margin-mobile pb-lg pt-md">
+      <div className="animate-fade-up flex flex-col gap-sm px-margin-mobile pb-lg pt-2">
         <p className="text-body-md text-on-surface-variant">
           <Icon name="location_on" size={14} className="align-text-bottom" /> {locality.name}
           {breadcrumb.length > 0 && ` · ${breadcrumb.join(' · ')}`}
@@ -157,7 +157,7 @@ export default function PlatformDetail() {
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-headline-md font-headline-md text-on-surface">{platform.name}</h2>
               <p className="text-body-md capitalize text-on-surface-variant">
-                {platform.categoryId.replace('-', ' ')}
+                {platform.categoryId.replace(/-/g, ' ')}
               </p>
             </div>
             <StatusBadge status={status} />
@@ -176,10 +176,10 @@ export default function PlatformDetail() {
           {(eta || details?.coverageStrength) && (
             <div className="grid grid-cols-2 divide-x divide-outline-variant/40 border-t border-outline-variant/40">
               <Fact label={platform.categoryId.includes('ride') || platform.categoryId.includes('taxi') ? 'Est. wait time' : 'Est. delivery'}>
-                {eta ?? '—'}
+                {eta ?? 'Unknown'}
               </Fact>
               <Fact label="Coverage">
-                {details?.coverageStrength ? COVERAGE_LABEL[details.coverageStrength] : '—'}
+                {details?.coverageStrength ? COVERAGE_LABEL[details.coverageStrength] : 'Unknown'}
               </Fact>
             </div>
           )}
@@ -240,7 +240,7 @@ export default function PlatformDetail() {
             {justReported && (
               <p className="mt-3 flex items-center gap-2 rounded-lg bg-success-container px-3 py-2 text-body-md text-success">
                 <Icon name="check" size={16} />
-                Recorded — confidence is now “{TIER_LABEL[tier]}”.
+                Recorded. Confidence is now “{TIER_LABEL[tier]}”.
               </p>
             )}
           </div>

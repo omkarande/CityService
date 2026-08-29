@@ -8,9 +8,14 @@
     --app-status-bar: 0px;
   }
 
-  /* Android/iOS: keep UI below the camera and the system status bar. */
+  /* Browser: respect the iOS notch. Native Android already sits the WebView
+     below the status bar (overlay: false), so extra CSS inset is empty space. */
   .app-safe-top {
-    padding-top: max(env(safe-area-inset-top, 0px), var(--app-status-bar, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  html.is-native-app .app-safe-top {
+    padding-top: 0;
   }
 
   /* Desktop browser only: the phone-frame chrome does not need status-bar inset. */

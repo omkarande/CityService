@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import type { LocalitySuggestion, MapPin } from '../api/types';
@@ -10,7 +10,7 @@ import SearchBar from '../components/SearchBar';
 import SearchMap from '../components/SearchMap';
 import TopBar from '../components/TopBar';
 import type { PlaceHit } from '../lib/nominatim';
-import { catalogAreaQueries, forwardGeocode, nearbyPlaces, pinLabelForQuery, reverseGeocode, searchPlaces } from '../lib/nominatim';
+import { catalogAreaQueries, pinLabelForQuery } from '../lib/nominatim';
 import { useVisibilityRefresh } from '../lib/useVisibilityRefresh';
 
 type PickedPlace = {
@@ -20,12 +20,17 @@ type PickedPlace = {
   localityId?: string;
 };
 
+function newSessionToken(): string {
+  return crypto.randomUUID();
+}
+
 /**
  * Google/Zomato-style picker: named autocomplete first, then a map with the
  * pin and nearby place names. Confirm goes to coverage for that point.
  */
 export default function Search() {
   const navigate = useNavigate();
+  const sessionToken = useRef(newSessionToken());
 
   const [query, setQuery] = useState('');
   const [catalog, setCatalog] = useState<LocalitySuggestion[]>([]);
@@ -50,9 +55,9 @@ export default function Search() {
     let cancelled = false;
     const timer = setTimeout(async () => {
       const q = query.trim();
-      const [savedLists, osm] = await Promise.all([
+      const [savedLists, googleHits] = await Promise.all([
         Promise.all(catalogAreaQueries(q).map((part) => api.search(part))),
-        q.length >= 2 ? searchPlaces(q) : Promise.resolve([]),
+        q.length >= 2 ? api.searchPlaces(q, sessionToken.current) : Promise.resolve([]),
       ]);
       if (cancelled) return;
       const byId = new Map<string, LocalitySuggestion>();
@@ -60,7 +65,7 @@ export default function Search() {
         for (const row of list) byId.set(row.locality.id, row);
       }
       setCatalog([...byId.values()].sort((a, b) => b.score - a.score));
-      setPlaces(osm);
+      setPlaces(googleHits);
     }, 280);
 
     return () => {
@@ -75,13 +80,13 @@ export default function Search() {
       return;
     }
     let cancelled = false;
-    nearbyPlaces(picked.lat, picked.lng, picked.name).then((rows) => {
+    api.nearbyPlaces(picked.lat, picked.lng).then((rows) => {
       if (!cancelled) setAround(rows);
     });
     return () => {
       cancelled = true;
     };
-  }, [picked?.lat, picked?.lng, picked?.name]);
+  }, [picked?.lat, picked?.lng]);
 
   const pinsById = useMemo(() => new Map(pins.map((p) => [p.locality.id, p])), [pins]);
   const searching = query.trim().length >= 2;
@@ -98,8 +103,23 @@ export default function Search() {
   }
 
   function onQueryChange(value: string) {
+    if (query.trim().length < 2 && value.trim().length >= 2) {
+      sessionToken.current = newSessionToken();
+    }
     setQuery(value);
     if (picked) setPicked(null);
+  }
+
+  async function openGooglePlace(place: PlaceHit) {
+    if (place.lat != null && place.lng != null) {
+      openMap({ name: place.name, lat: place.lat, lng: place.lng });
+      sessionToken.current = newSessionToken();
+      return;
+    }
+    const details = await api.placeDetails(place.id, sessionToken.current);
+    sessionToken.current = newSessionToken();
+    if (!details) return;
+    openMap({ name: details.name || place.name, lat: details.lat, lng: details.lng });
   }
 
   async function showOnMap() {
@@ -107,12 +127,8 @@ export default function Search() {
     if (q.length < 2) return;
     setMapBusy(true);
     try {
-      const hit = (await forwardGeocode(q)) ?? (await api.geocode(q));
-      if (hit) {
-        openMap({ name: pinLabelForQuery(q, hit.name), lat: hit.lat, lng: hit.lng });
-      } else {
-        openMap({ name: q, lat: 18.6, lng: 73.85 });
-      }
+      const hit = await api.geocode(q);
+      if (hit) openMap({ name: pinLabelForQuery(q, hit.name), lat: hit.lat, lng: hit.lng });
     } finally {
       setMapBusy(false);
     }
@@ -120,7 +136,7 @@ export default function Search() {
 
   async function onPinMove(lat: number, lng: number) {
     setPicked((current) => (current ? { ...current, lat, lng } : current));
-    const geo = await reverseGeocode(lat, lng);
+    const geo = await api.reverse(lat, lng);
     setPicked((current) =>
       current && current.lat === lat && current.lng === lng
         ? { ...current, name: geo.name || current.name }
@@ -143,7 +159,7 @@ export default function Search() {
           <EmptyState
             icon="search"
             title="Find a locality"
-            body="Search a shop or society, then the area — e.g. Mustard Mart, Shinde Vasti, Ravet."
+            body="Search a shop or society, then the area. For example Mustard Mart, Shinde Vasti, Ravet."
           />
         )}
 
@@ -194,7 +210,7 @@ export default function Search() {
                 key={place.id}
                 name={place.name}
                 context={place.context}
-                onClick={() => openMap({ name: place.name, lat: place.lat, lng: place.lng })}
+                onClick={() => void openGooglePlace(place)}
               />
             ))}
 
@@ -213,7 +229,7 @@ export default function Search() {
           <div className="animate-fade-up flex flex-col gap-sm">
             <p className="text-body-md text-on-surface">
               <span className="font-semibold">{picked.name}</span>
-              <span className="text-on-surface-variant"> — drag the pin or tap a labelled place</span>
+              <span className="text-on-surface-variant">. Drag the pin or tap a labelled place</span>
             </p>
             <SearchMap
               suggestions={catalog}
@@ -224,7 +240,11 @@ export default function Search() {
               nearbyPlaces={around}
               showCompactConfirm
               confirmLabel="Select this pinned location"
-              onNearbyPick={(place) => openMap({ name: place.name, lat: place.lat, lng: place.lng })}
+              onNearbyPick={(place) => {
+                if (place.lat != null && place.lng != null) {
+                  openMap({ name: place.name, lat: place.lat, lng: place.lng });
+                }
+              }}
               onPinChange={onPinMove}
             />
           </div>

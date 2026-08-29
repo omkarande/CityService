@@ -1,7 +1,6 @@
 # CityService — Architecture & Data Model
 
-> Status: planning doc. Written before any app code exists.
-> Current repo contents: `DESIGN.md` (design tokens), `code.html` (static mockup), `screen*.png` (UI references).
+> Status: living doc. The app, Express API, Google Maps stack, and Pune seed catalog exist in this repo. After a reboot, start at [`PROGRESS.md`](./PROGRESS.md). Design tokens remain in [`DESIGN.md`](./DESIGN.md).
 
 ---
 
@@ -105,12 +104,17 @@ interface UserReport {
 ```ts
 // ---------- What the API actually returns to a screen ----------
 
+type ResolutionPath = 'exact' | 'nearby' | 'pincode' | 'polygon' | 'city' | 'none';
+
 interface ResolvedCoverage {
   platform: Platform;
   status: CoverageStatus;
   confidence: number;                              // 0..1
   tier: 'verified' | 'likely' | 'unconfirmed';
-  resolvedFrom: 'exact' | 'pincode' | 'polygon' | 'city' | 'none';
+  resolvedFrom: ResolutionPath;
+  resolvedAreaName: string | null;
+  resolvedAreaId: string | null;
+  distanceKm: number | null;                       // when the winning record is borrowed
   lastVerifiedAt: string | null;
   source: SourceKind;
   details?: Coverage['details'];
@@ -127,17 +131,20 @@ interface AreaResult {
 
 ## 3. Coverage resolution
 
-The interesting logic. Given `(localityId, platformId)`, walk a **fallback ladder** and degrade confidence at each step down:
+The interesting logic. Given `(localityId, platformId)`, walk a **fallback ladder** and degrade confidence at each step down (`src/domain/geo.ts`: `EXACT_KM = 0.15`, `NEARBY_KM = 3`, `GENERAL_KM = 15`):
 
 | Step | Match | `resolvedFrom` | Confidence multiplier |
 |---|---|---|---|
 | 1 | Coverage record on this exact locality | `exact` | 1.0 |
-| 2 | Record on a *different* locality sharing the pincode | `pincode` | 0.8 |
-| 3 | Point-in-polygon against a coverage shape *(phase 2, PostGIS)* | `polygon` | 0.9 |
-| 4 | Record on the nearest ancestor — suburb, then city | `city` | 0.45 |
-| 5 | Nothing | `none` | → status `unknown` |
+| 2 | Record on a *different specific* place within 3 km | `nearby` | 0.85 |
+| 3 | Record on a *different* locality sharing the pincode | `pincode` | 0.8 |
+| 4 | Point-in-polygon against a coverage shape *(not built; PostGIS later)* | `polygon` | 0.9 |
+| 5 | Record on the nearest ancestor — suburb, then city | `city` | 0.45 |
+| 6 | Nothing | `none` | → status `unknown` |
 
-Step 4 walks the whole parent chain rather than jumping straight to the city, so a Pimpri-Chinchwad record beats a Pune one for a locality inside PCMC. The path is still labelled `city`; `resolvedAreaName` carries which ancestor actually answered.
+For a GPS / geocoded pin that is not a saved locality (`pickRecordFromPoint`): treat a specific DB place within 150 m as `exact`, then nearby ≤3 km, then suburb/city within 15 km. The 3 km ring is **coverage borrow + map labels only**. The user can drop a pin anywhere in India.
+
+Step 5 walks the whole parent chain rather than jumping straight to the city, so a Pimpri-Chinchwad record beats a Pune one for a locality inside PCMC. The path is still labelled `city`; `resolvedAreaName` carries which ancestor actually answered.
 
 Then score (implemented in `src/domain/confidence.ts`):
 
@@ -181,7 +188,7 @@ That third rule is also the best demo of the mechanic: tapping "Yes, it works" a
 
 ## 4. Architecture, in three phases
 
-### Phase 1 — Frontend prototype (what we build now)
+### Phase 1 — Frontend (shipped)
 
 - **React 18 + Vite + TypeScript + Tailwind**, porting the tokens out of `DESIGN.md`
 - **Mobile-first.** Phone-width layout is the design target; on desktop it renders centred in a max-`420px` column
@@ -189,11 +196,20 @@ That third rule is also the best demo of the mechanic: tapping "Yes, it works" a
 - All data access goes through **one module**, `src/api/client.ts`. Local Vite uses `mockAdapter`; production (and `VITE_USE_API=true`) uses `httpAdapter`
 - Resolution logic lives in `src/domain/resolve.ts`, pure functions, **portable to the server unchanged**
 - Saved locations + queued user reports in `localStorage`
-- Map: **Leaflet + OpenStreetMap** tiles (free, no API key, no billing setup)
+- Map: **Google Maps JavaScript API** (canvas). Place search: **Places API (New)** (autocomplete, details, nearby 3 km, text search) and **Geocoding API** (reverse on pin drag), proxied through Express so the server key never ships in the APK. OSM / Leaflet / Photon / Nominatim / Overpass are not on the live search/map path. `src/lib/nominatim.ts` is query helpers + `PlaceHit` only.
+
+**Google keys (one Cloud project is enough).** Enable Maps JavaScript, Places API (New), and Geocoding only. Do not enable Auth, OAuth, Data Access, Maps SDK for Android, Geolocation API, or Navigation Connect. GPS is Capacitor / browser geolocation.
+
+| Variable | Where | Used for |
+|---|---|---|
+| `VITE_GOOGLE_MAPS_KEY` | `.env` (Vite) and `.env.production` (`vite build` / APK) | Maps JS in the browser / WebView |
+| `GOOGLE_MAPS_SERVER_KEY` | `.env` (local Node) and Render env | `/api/places/*`, `/api/geocode`, `/api/reverse` |
+
+Billing must stay attached (a payment method on file) or the map watermarks “for development purposes only”. Same key in both vars is fine for now; two keys later is a client-vs-server split, not a Google requirement. Never commit real keys; `.env.example` stays placeholders.
 
 ### Phase 2 — Backend (this cut)
 
-**Render Web Service (Node 20 + Express) + Render PostgreSQL — live as of 2026-08-24.** `DATABASE_URL` and `PROBE_SECRET` are env vars. The public site stays login-free; only `/probe` write routes require the team password (httpOnly cookie after `POST /api/probe/login`, or `Authorization: Bearer`). End-to-end smoke test of the production URL is still pending (`PROGRESS.md`).
+**Render Web Service (Node 20 + Express) + Render PostgreSQL — live as of 2026-08-24.** `DATABASE_URL`, `PROBE_SECRET`, and `GOOGLE_MAPS_SERVER_KEY` are env vars. The public site stays login-free; only `/probe` write routes require the team password (httpOnly cookie after `POST /api/probe/login`, or `Authorization: Bearer`). End-to-end smoke test of the production URL is still pending (`PROGRESS.md`).
 
 Tables map 1:1 to the types above: `categories`, `localities`, `platforms`, `coverage`. Resolution runs server-side (`src/domain/resolve.ts`) and returns `AreaResult`. User reports and PostGIS polygons are still out of scope.
 
@@ -214,11 +230,12 @@ Brand-level lists, per `screen3.png` — the categories-only variant in `screen1
 | Route | Screen | Notes |
 |---|---|---|
 | `/` | Home | City grid, hero pitch; search bar opens `/search` on focus, "use my location" |
-| `/search` | Search | Locality match list + a compact map that expands into a full-screen, zoomable picker with a draggable pin |
+| `/search` | Search | Autocomplete first (catalog + Google Places), then a Google map. Pin anywhere in India; labels around the pin within 3 km. Tab bar hidden here. |
 | `/city/:cityId` | City | Area list for a featured city — Pune's areas carry real coverage data, every other city is presentation-only |
 | `/l/:localityId` | Results | Locality header with inline star rating, category chips, platform cards with status badges |
-| `/l/:localityId/:platformId` | Platform detail | `screen2.png` — ETA, coverage, last updated, source, thumbs up/down |
-| `/nearby` | Map | Leaflet, coverage pins around you |
+| `/at` | Results (pin) | Same Results screen for a GPS / geocoded point (`?lat=&lng=&q=`) |
+| `/l/:localityId/:platformId` | Platform detail | `screen2.png` — ETA, coverage, last updated, source, thumbs up/down. Nearby copy is “within 3 km”. |
+| `/nearby` | Map | Google Maps canvas, coverage pins around you |
 | `/saved` | Saved | localStorage-backed |
 | `/account` | Account | Stub in v1 |
 
@@ -236,23 +253,28 @@ src/
   domain/
     resolve.ts         // fallback ladder + confidence  (server-portable)
     confidence.ts
+    geo.ts             // EXACT_KM / NEARBY_KM / GENERAL_KM, haversine
     search.ts          // fuzzy locality match over aliases
+    seedCatalog.ts
   data/
     localities.pune.json
     platforms.json
     coverage.seed.json
   components/
     AppShell.tsx  TopBar.tsx  BottomNav.tsx
-    SearchBar.tsx  LocalityCard.tsx
-    PlatformCard.tsx  StatusBadge.tsx  ConfidenceNote.tsx
-    CategoryChips.tsx  MapView.tsx
+    SearchBar.tsx  SearchMap.tsx  GoogleMapCanvas.tsx
+    PlatformCard.tsx  StatusBadge.tsx  CategoryChips.tsx
   screens/
-    Home.tsx  Results.tsx  PlatformDetail.tsx
+    Home.tsx  Search.tsx  City.tsx  Results.tsx  PlatformDetail.tsx
     Nearby.tsx  Saved.tsx  Account.tsx  Probe.tsx
-  theme/
-    tokens.ts          // ported from DESIGN.md
+  lib/
+    googleMaps.ts      // loads Maps JS with VITE_GOOGLE_MAPS_KEY
+    googlePlaces.ts    // server-side Places + Geocoding (imported by server/)
+    nominatim.ts       // PlaceHit + query helpers only (no OSM fetches)
+    native.ts          // Capacitor: overlay false, cream status bar, no extra CSS inset
+    format.ts          // ETA copy: "3 to 6 min" (no dashes in UI text)
 server/
-  index.ts             // Express: public GET + team POST /api/probe/*
+  index.ts             // Express: public GET, /api/places/*, /api/geocode, /api/reverse, team POST /api/probe/*
   store.ts             // Postgres or in-memory
 ```
 
@@ -275,7 +297,10 @@ Made now so the build isn't blocked; each is cheap to revisit:
 - **React + Vite + TS + Tailwind** — matches the existing Tailwind mockup
 - **Pune as seed city** — matches the driving example (Shinde Vasti, Chikhali)
 - **Brand-level cards, categories as filters** — `screen3.png` over `screen1.png`
-- **Leaflet + OSM** for maps — no API key, no billing
+- **Google Maps Platform** for maps and place search (Maps JS + Places New + Geocoding). OSM/Leaflet removed from the live path. Billing required; Auth/OAuth not used.
+- **3 km nearby ring** for labels and coverage borrow; pin is India-wide
+- **No hyphen / en-dash / em-dash in application UI text** (IDs and CSS stay hyphenated)
+- **Native Android:** `StatusBar.setOverlaysWebView({ overlay: false })`; `html.is-native-app .app-safe-top { padding-top: 0 }` — do not add a CSS status-bar pad on top of the already-inset WebView
 - **Render Node + Postgres** for shared coverage (not Supabase, for this cut)
 
 ## 9. Open questions
@@ -286,7 +311,7 @@ Made now so the build isn't blocked; each is cheap to revisit:
 
 ## 10. Data acquisition methods (beyond one-at-a-time manual checks)
 
-Planning only, written up 2026-08-15 for team review — nothing here is implemented yet. The `claude-in-chrome` browser-automation probing described in §3 / `PROGRESS.md`'s "Real data collection" (used to verify 8 platforms for Pimpri-Chinchwad) is one instance of a broader family of methods. Six approaches, ordered by what they cost to run once built:
+Written up 2026-08-15; M2/M4/M5/M6 foundation for Pune+PCMC is in the repo (see status below). The `claude-in-chrome` browser-automation probing described in §3 / `PROGRESS.md` (8 platforms for Pimpri-Chinchwad) is one instance of M1. Six approaches, ordered by what they cost to run once built:
 
 | # | Method | Marginal cost | Automation | Accuracy | Best for |
 |---|---|---|---|---|---|
@@ -301,16 +326,12 @@ Planning only, written up 2026-08-15 for team review — nothing here is impleme
 
 **Before scaling M1 or M3 past occasional manual-triggered checks**: both call private endpoints built for these platforms' own frontends, not for outside use. Rate-limit deliberately, expect breakage without notice, and get a ToS/legal read before automating at real volume — the same caution §3's pipeline note already flags, worth repeating here since it applies to the whole family, not just the one method already in use.
 
-**Recommended path**, extending the pipeline note in §3: keep M1 (browser-automation probing) as the sparse ground-truth/calibration layer. Add M6 (real locality boundaries) + M5 (adaptive sampling) on top of M1/M2 for cheap, boundary-accurate citywide coverage — this is the direct answer to "cheapest method that's still automatable and accurate." Add M4 once a handful of quick-commerce hubs are calibrated against M1, making future Blinkit/Zepto/Instamart checks free (pure local geometry, no network call). Keep an eye out for M3 while reverse-engineering each platform for M1, but don't depend on it.
-
-**Before scaling M1 or M3 past occasional manual-triggered checks**: both call private endpoints built for these platforms' own frontends, not for outside use. Rate-limit deliberately, expect breakage without notice, and get a ToS/legal read before automating at real volume — the same caution §3's pipeline note already flags, worth repeating here since it applies to the whole family, not just the one method already in use.
-
 ### Status: Pune + PCMC pipeline foundation (built 2026-08-19)
 
 Scoped M2/M5/M6 down from "nationwide" to specifically Pune Municipal Corporation (PMC) + Pimpri-Chinchwad Municipal Corporation (PCMC), since that's the actual near-term area of interest. Concrete findings, not estimates:
 
-- **M2 — `src/data/pincodes.pune-pcmc.json`**: 55 real pincodes (39 PMC, 15 PCMC, 1 left `"uncertain"` rather than force-classified), each individually confirmed via `api.postalpincode.in` (not scraped in bulk — verified one pincode at a time) and geocoded via Nominatim. This is fewer than the ~90-100 originally guessed in planning discussion — corrected downward once actually checked, per this project's own data-honesty principle. Treat 55 as a verified floor: the sweep covered 411xxx fully plus a 412xxx candidate band, not proven exhaustive for PCMC's outer edge.
-- **M6 — `src/data/boundaries.pune-pcmc.geojson`**: honest negative result — **neither PMC nor PCMC has an administrative boundary polygon in OpenStreetMap**, verified two independent ways (Overpass relation search, Nominatim lookup). What the file actually holds is the coarser admin_level-6 taluka polygons that do exist (Pune City + Haveli subdistricts), clearly labeled as coarser than a true municipal boundary, plus real city-center points. Getting an actual PMC/PCMC polygon needs one of: the municipal corporations' own GIS portals, digitizing an official ward map, or an approximation from taluka ∩ seeded-locality points — none attempted yet, flagged as an open follow-up rather than faked.
+- **M2 — `src/data/pincodes.pune-pcmc.json`**: 55 real pincodes (39 PMC, 15 PCMC, 1 left `"uncertain"` rather than force-classified), each individually confirmed via `api.postalpincode.in` (not scraped in bulk — verified one pincode at a time) and geocoded via Nominatim (historical seed; live map/search is Google). This is fewer than the ~90-100 originally guessed in planning discussion — corrected downward once actually checked, per this project's own data-honesty principle. Treat 55 as a verified floor: the sweep covered 411xxx fully plus a 412xxx candidate band, not proven exhaustive for PCMC's outer edge.
+- **M6 — `src/data/boundaries.pune-pcmc.geojson`**: honest negative result — **neither PMC nor PCMC has an administrative boundary polygon in OpenStreetMap**, verified two independent ways (Overpass relation search, Nominatim lookup). This is geography seed, not the live map. What the file actually holds is the coarser admin_level-6 taluka polygons that do exist (Pune City + Haveli subdistricts), clearly labeled as coarser than a true municipal boundary, plus real city-center points. Getting an actual PMC/PCMC polygon needs one of: the municipal corporations' own GIS portals, digitizing an official ward map, or an approximation from taluka ∩ seeded-locality points — none attempted yet, flagged as an open follow-up rather than faked.
 - **M5 — `scripts/pick-next-check.mjs`**: working next-point picker (farthest-point coarse sampling, then boundary-bisection where neighboring pincodes disagree), scoped to the 8 tier-1 platforms (`zepto`, `blinkit`, `instamart`, `swiggy`, `zomato`, `amazon`, `flipkart`, `bigbasket`) agreed as the first priority tier over ride-hailing/courier/home-services. Auto-seeds `src/data/checkpoints.log.json` from the real Pimpri-Chinchwad `source: "probe"` records already in `coverage.seed.json`. Run via `node scripts/pick-next-check.mjs [count]`.
 
 M1 checking (actually probing the suggested pincode/platform pairs via `claude-in-chrome`) has not resumed yet using this new systematic ordering — see `PROGRESS.md` for current status and next steps.

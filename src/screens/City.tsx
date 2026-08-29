@@ -65,7 +65,7 @@ export default function City() {
           {!city.seeded && (
             <p className="flex items-start gap-2 rounded-lg border border-outline-variant/50 bg-surface-container-lowest px-3 py-2 text-body-md text-on-surface-variant">
               <Icon name="info" size={16} className="mt-0.5 shrink-0 text-outline" />
-              We haven't collected coverage data for {city.name} yet — tap an area to see how the app says so,
+              We haven't collected coverage data for {city.name} yet. Tap an area to see how the app says so,
               instead of guessing.
             </p>
           )}

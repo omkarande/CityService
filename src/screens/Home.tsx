@@ -44,7 +44,7 @@ export default function Home() {
   return (
     <div className={native ? 'flex min-h-0 flex-1 flex-col' : undefined}>
       <div className="shrink-0 rounded-b-3xl bg-[#FBF7F0] text-on-surface">
-        <header className="sticky top-0 z-30 bg-[#FBF7F0] px-6 pb-3 pt-3">
+        <header className="sticky top-0 z-30 bg-[#FBF7F0] px-6 pb-3 pt-2">
           <div className="mb-3 flex items-center justify-between gap-3">
             <button
               type="button"
@@ -61,7 +61,7 @@ export default function Home() {
                 <span className="mt-0.5 block truncate text-label-sm text-on-surface/70">
                   {locate.status === 'locating'
                     ? 'Finding your location…'
-                    : `${pins.length || '—'} localities`}
+                    : `${pins.length} localities`}
                 </span>
               </span>
             </button>
@@ -114,7 +114,7 @@ export default function Home() {
                 What actually works where you live?
               </h2>
               <p className="mt-2 max-w-[34ch] text-body-md text-white/90">
-                See which delivery, ride and quick-commerce apps really serve an address.
+                See which delivery, ride and quick commerce apps really serve an address.
               </p>
             </div>
           </div>

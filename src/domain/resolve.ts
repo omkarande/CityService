@@ -113,7 +113,7 @@ function nearestGeneral(
 /**
  * Walk the ladder for one platform at a known locality:
  *   1. a record on this exact locality
- *   2. a specific DB place with coverage within 2 km
+ *   2. a specific DB place with coverage within 3 km
  *   3. a record on a different locality sharing the pincode
  *   4. a record on the nearest ancestor (suburb → city)
  */
@@ -162,7 +162,7 @@ export function pickRecord(
 /**
  * Answer from a GPS / geocoded point that may not be a saved locality.
  *   1. specific DB place within 150 m → this place
- *   2. specific DB place within 2 km → nearby real data
+ *   2. specific DB place within 3 km → nearby real data
  *   3. suburb/city record within 15 km → general area
  */
 export function pickRecordFromPoint(
@@ -277,7 +277,7 @@ function buildCaveat(
   }
   if (path === 'pincode') return `Recorded for ${areaName}, which shares pincode ${pincode}.`;
   if (path === 'city') return `General area data (${areaName})`;
-  if (stale) return 'Not checked recently — may be out of date.';
+  if (stale) return 'Not checked recently. May be out of date.';
   return null;
 }
 

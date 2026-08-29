@@ -99,7 +99,7 @@ export const FEATURED_CITIES: FeaturedCity[] = [
     landmark: 'Hawa Mahal',
     image: '/landmarks/jaipur.jpg',
     seeded: false,
-    areas: [{ label: 'Malviya Nagar' }, { label: 'Vaishali Nagar' }, { label: 'C-Scheme' }],
+    areas: [{ label: 'Malviya Nagar' }, { label: 'Vaishali Nagar' }, { label: 'C Scheme' }],
   },
   {
     id: 'ahmedabad',
